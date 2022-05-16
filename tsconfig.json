@@ -1,0 +1,5 @@
+{
+  "_comment": "This file is needed for VSCode intellisense only.",
+  "extends": "./configs/ts/tsconfig.json",
+  "compilerOptions": {}
+}

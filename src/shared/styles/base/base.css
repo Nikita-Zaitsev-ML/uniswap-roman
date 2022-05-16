@@ -1,0 +1,13 @@
+@import-normalize;
+
+body,
+:root,
+[id='__next'] {
+  height: 100%;
+}
+
+:root {
+  /* TODO: https://github.com/mui-org/material-ui/issues/15251 */
+  font-size: max(12px, calc(1vw * 16 / 14.4));
+  scroll-behavior: smooth;
+}
