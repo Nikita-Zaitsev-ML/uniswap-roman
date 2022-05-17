@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, ReactNode } from 'react';
 import {
   AppBarProps as MUIHeaderProps,
   AppBar as MUIHeader,
@@ -6,23 +6,20 @@ import {
   useTheme,
 } from '@mui/material';
 
-import { Container } from '../Container/Container';
 import { Box } from '../Box/Box';
-import { Typography } from '../Typography/Typography';
+import { Link } from '../Link/Link';
 import { Navigation, Props as NavigationProps } from './Navigation/Navigation';
 import { createStyles } from './Header.style';
 import { defaultNavigationItems } from './constants';
 
 type Props = MUIHeaderProps & {
-  title?: string;
-  subTitle?: string;
+  logo: ReactNode;
   navigation?: NavigationProps;
 };
 
 const Header: FC<Props> = ({
-  title = 'Title',
-  subTitle = 'Sub title',
   navigation = { items: defaultNavigationItems },
+  logo,
   ...MUIProps
 }) => {
   const theme = useTheme();
@@ -30,21 +27,17 @@ const Header: FC<Props> = ({
 
   return (
     <MUIHeader css={styles.root()} {...MUIProps}>
-      <Container maxWidth={1274}>
-        <MUIToolbar css={styles.toolbar()} variant="dense" disableGutters>
-          <Box css={styles.titleLayout()}>
-            <Typography css={styles.title()} variant="h5">
-              {title}
-            </Typography>
-            <Typography css={styles.subTitle()} variant="caption">
-              {subTitle}
-            </Typography>
-          </Box>
-          <Box css={styles.navigation()}>
-            <Navigation {...navigation} />
-          </Box>
-        </MUIToolbar>
-      </Container>
+      <MUIToolbar css={styles.toolbar()}>
+        <Box css={styles.logo()}>
+          <Link href="/" color="inherit">
+            {logo}
+          </Link>
+        </Box>
+        <Box css={styles.navigation()}>
+          <Navigation {...navigation} />
+        </Box>
+        <Box css={styles.settings()}></Box>
+      </MUIToolbar>
     </MUIHeader>
   );
 };

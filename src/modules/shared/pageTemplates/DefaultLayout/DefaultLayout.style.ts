@@ -16,6 +16,7 @@ const createStyles = (props: Pick<Props, 'withHeader'>, theme: Theme) => ({
       display: grid;
       min-height: 100%;
       overflow: hidden;
+      background: ${theme.gradients.radial.main};
 
       ${layout}
     `;

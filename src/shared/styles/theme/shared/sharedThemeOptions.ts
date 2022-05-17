@@ -9,11 +9,23 @@ declare module '@mui/material/styles' {
       grab: CSSProperties['cursor'];
       grabbing: CSSProperties['cursor'];
     };
+    gradients: {
+      linear: {};
+      radial: {
+        main: CSSProperties['backgroundImage'];
+      };
+    };
   }
   interface ThemeOptions {
     cursor?: {
       grab?: CSSProperties['cursor'];
       grabbing?: CSSProperties['cursor'];
+    };
+    gradients?: {
+      linear?: {};
+      radial?: {
+        main?: CSSProperties['backgroundImage'];
+      };
     };
   }
 }

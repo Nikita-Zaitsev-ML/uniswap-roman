@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 
 import { Header as HeaderComponent } from 'src/shared/components';
 
+import { Logo } from '../Icons';
 import { routes, items } from './constants';
 
 type Props = {};
@@ -19,7 +20,7 @@ const Header: FC<Props> = () => {
     }),
   };
 
-  return <HeaderComponent navigation={navigation} />;
+  return <HeaderComponent logo={<Logo />} navigation={navigation} />;
 };
 
 export type { Props };
