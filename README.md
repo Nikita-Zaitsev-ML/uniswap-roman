@@ -46,9 +46,9 @@ npm run {script-name}
 
 Script-names:
 
-- dev - just builds bundles and place it into .next directory;
+- dev - builds bundles and runs server to be upgraded;
 - build - build minify bundles and place it into .next directory;
-- start - builds bundles and runs server to be upgraded;
+- start - just builds bundles and place it into .next directory;
 - test - runs tests;
 - lint - lint styles and scripts, show result;
 - lint:fix - use prettier for all known files, lint styles and scripts, auto fix files with errors if it is possible, show result;
