@@ -1,7 +1,11 @@
 const userNameToAvatar = (userName: string) => {
-  const result = `${userName.split(' ')[0][0]}${
-    userName.split(' ')[1][0]
-  }`.toUpperCase();
+  const words = / /.test(userName) ? userName.split(' ') : [userName];
+
+  const result = words
+    .reduce((acc, word) => {
+      return `${acc}${word[0]}`;
+    }, '')
+    .toUpperCase();
 
   return result;
 };

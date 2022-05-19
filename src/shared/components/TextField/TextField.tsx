@@ -5,6 +5,7 @@ import {
   useTheme,
 } from '@mui/material';
 
+import { InputAdornment } from './InputAdornment/InputAdornment';
 import { createStyles } from './TextField.style';
 
 type Props = Omit<MUITextFieldProps, 'size'> & {
@@ -32,4 +33,4 @@ const TextField: FC<Props> = ({
 
 export type { Props };
 
-export { TextField };
+export { TextField, InputAdornment };

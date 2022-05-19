@@ -1,9 +1,11 @@
 import { Avatar } from './Avatar/Avatar';
+import { Autocomplete } from './Autocomplete/Autocomplete';
 import { Box } from './Box/Box';
 import { Breadcrumbs } from './Breadcrumbs/Breadcrumbs';
 import { Container } from './Container/Container';
 import { Header } from './Header/Header';
 import {
+  ArrowDownward,
   ArrowRightIcon,
   CloudDoneIcon,
   CloudErrorIcon,
@@ -22,7 +24,7 @@ import { Link } from './Link/Link';
 import { Menu } from './Menu/Menu';
 import { PageHead } from './PageHead/PageHead';
 import { Palette } from './Palette/Palette';
-import { TextField } from './TextField/TextField';
+import { TextField, InputAdornment } from './TextField/TextField';
 import { Typography } from './Typography/Typography';
 import { MediaControls } from './MediaControls/MediaControls';
 import { Grid } from './Grid/Grid';
@@ -40,10 +42,12 @@ import { Tabs } from './Tabs/Tabs';
 
 export {
   Avatar,
+  Autocomplete,
   Box,
   Breadcrumbs,
   Container,
   Header,
+  ArrowDownward,
   ArrowRightIcon,
   CloudDoneIcon,
   CloudErrorIcon,
@@ -62,6 +66,7 @@ export {
   PageHead,
   Palette,
   TextField,
+  InputAdornment,
   Typography,
   MediaControls,
   Grid,

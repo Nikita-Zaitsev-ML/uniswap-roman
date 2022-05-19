@@ -1,5 +1,6 @@
 import { DefaultLayout } from 'src/modules/shared/pageTemplates';
 import { Head } from 'src/modules/shared/components';
+import { Swap } from 'src/features/Swap';
 import type { NextPageWithLayout } from 'src/shared/types';
 import { Box, Container } from 'src/shared/components';
 
@@ -13,7 +14,9 @@ const Home: NextPageWithLayout = () => {
       <Head title="Главная страница" keywords="" description="" />
       <Container>
         <Box css={styles.root()} component="main">
-          <Box css={styles.grid()}></Box>
+          <Box css={styles.grid()}>
+            <Swap />
+          </Box>
         </Box>
       </Container>
     </>

@@ -1,3 +1,4 @@
+import { ArrowDownward } from './ArrowDownward/ArrowDownward';
 import { ArrowRightIcon } from './ArrowRightIcon/ArrowRightIcon';
 import { Check } from './Check/Check';
 import { CloudDoneIcon } from './CloudDoneIcon/CloudDoneIcon';
@@ -13,6 +14,7 @@ import { SVGIcon } from './SVGIcon/SVGIcon';
 import { WarningIcon } from './WarningIcon/WarningIcon';
 
 export {
+  ArrowDownward,
   ArrowRightIcon,
   Check,
   CloudDoneIcon,

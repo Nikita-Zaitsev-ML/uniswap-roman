@@ -10,16 +10,16 @@ import { Box } from '../Box/Box';
 import { userNameToAvatar } from './utils/userNameToAvatar';
 
 type Props = MUIAvatarProps & {
-  hasImage: boolean;
+  hasImage?: boolean;
   hasBorder?: boolean;
-  userName: string;
+  userName?: string;
   src?: string;
 };
 
 const Avatar: FC<Props> = ({
-  hasImage,
+  hasImage = false,
   hasBorder = true,
-  userName,
+  userName = 'Имя аватара',
   src = './image/avatar.svg',
   ...MUIProps
 }) => {
