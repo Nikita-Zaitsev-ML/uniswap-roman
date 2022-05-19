@@ -2,20 +2,20 @@ import * as yup from 'yup';
 
 const schema = yup
   .object({
-    theFirstToken: yup
+    theFirstItem: yup
       .string()
-      .notOneOf([yup.ref('theSecondToken')], 'Токены не должны совпадать')
-      .required('Выберите токен'),
-    theFirstTokenValue: yup
+      .notOneOf([yup.ref('theSecondItem')], 'Элементы не должны совпадать')
+      .required('Выберите элемент'),
+    theFirstItemValue: yup
       .number()
       .typeError('Значение должно быть числом')
       .moreThan(0, 'Значение должно быть > 0')
       .required('Заполните поле'),
-    theSecondToken: yup
+    theSecondItem: yup
       .string()
-      .notOneOf([yup.ref('theFirstToken')], 'Токены не должны совпадать')
-      .required('Выберите токен'),
-    theSecondTokenValue: yup
+      .notOneOf([yup.ref('theFirstItem')], 'Элементы не должны совпадать')
+      .required('Выберите элемент'),
+    theSecondItemValue: yup
       .number()
       .typeError('Значение должно быть числом')
       .moreThan(0, 'Значение должно быть > 0')

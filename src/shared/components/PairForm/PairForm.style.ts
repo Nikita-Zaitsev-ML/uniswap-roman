@@ -9,6 +9,10 @@ const createStyles = (theme: Theme) => ({
     background: ${theme.palette.background.paper};
     box-shadow: ${theme.shadows[13]};
   `,
+  header: () => css`
+    display: flex;
+    justify-content: space-between;
+  `,
   title: () => css``,
   panel: () => css`
     display: grid;

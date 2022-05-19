@@ -2,28 +2,26 @@ import { FC, SyntheticEvent } from 'react';
 import { useTheme } from '@mui/material';
 
 import {
-  Box,
-  TextField,
-  InputAdornment,
-  Autocomplete,
-  Avatar,
-  Typography,
-  Button,
-} from 'src/shared/components';
-
-import { Token } from '../../../types';
-import {
   MaskedDecimalField,
   Props as MaskedDecimalFieldProps,
-} from './MaskedDecimalField/MaskedDecimalField';
+} from '../../MaskedDecimalField/MaskedDecimalField';
+import { Box } from '../../Box/Box';
+import { TextField, InputAdornment } from '../../TextField/TextField';
+import { Autocomplete } from '../../Autocomplete/Autocomplete';
+import { Avatar } from '../../Avatar/Avatar';
+import { Typography } from '../../Typography/Typography';
+import { Button } from '../../Button/Button';
+import { Item } from '../type';
 import { createStyles } from './FieldWithAutocomplete.style';
 
 type Props = MaskedDecimalFieldProps & {
-  options: Token[];
+  options: Item[];
+  optionText: string;
+  value?: string;
   max?: number;
   handleAutocompleteChange: (
     event: SyntheticEvent<Element, Event>,
-    value: Token | null,
+    value: Item | null,
     reason: 'createOption' | 'selectOption' | 'removeOption' | 'blur' | 'clear'
   ) => void;
   handleMaxClick: () => void;
@@ -31,6 +29,7 @@ type Props = MaskedDecimalFieldProps & {
 
 const FieldWithAutocomplete: FC<Props> = ({
   options,
+  optionText,
   max,
   handleAutocompleteChange,
   handleMaxClick,
@@ -61,7 +60,10 @@ const FieldWithAutocomplete: FC<Props> = ({
               renderOption={(props, option) => (
                 <Box css={styles.option()} component="li" {...props}>
                   <Box css={styles.optionAvatar()}>
-                    <Avatar userName={option.name} alt="иконка токена" />
+                    <Avatar
+                      userName={option.name}
+                      alt={`иконка ${optionText}`}
+                    />
                   </Box>
                   <Box css={styles.optionText()} component="span">
                     {option.name}
@@ -71,7 +73,7 @@ const FieldWithAutocomplete: FC<Props> = ({
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  label="Выберите токен"
+                  label={`Выберите ${optionText}`}
                   size="small"
                   fullWidth
                 />

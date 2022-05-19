@@ -1,7 +1,7 @@
 import { FC } from 'react';
-import NumberFormat from 'react-number-format';
+import NumberFormat, { NumberFormatValues } from 'react-number-format';
 
-import { TextField } from 'src/shared/components';
+import { TextField } from '../TextField/TextField';
 
 type Props = Omit<
   Parameters<typeof TextField>['0'],
@@ -11,7 +11,7 @@ type Props = Omit<
 };
 
 const MaskedDecimalField: FC<Props> = ({ max, ...textFieldProps }) => {
-  const withValueLimit = ({ floatValue }: { floatValue?: number }) => {
+  const withValueLimit = ({ floatValue }: NumberFormatValues) => {
     return max !== undefined && floatValue !== undefined && floatValue <= max;
   };
 

@@ -23,6 +23,7 @@ import { Img } from './Img/Img';
 import { Link } from './Link/Link';
 import { Menu } from './Menu/Menu';
 import { PageHead } from './PageHead/PageHead';
+import { PairForm } from './PairForm/PairForm';
 import { Palette } from './Palette/Palette';
 import { TextField, InputAdornment } from './TextField/TextField';
 import { Typography } from './Typography/Typography';
@@ -64,6 +65,7 @@ export {
   Link,
   Menu,
   PageHead,
+  PairForm,
   Palette,
   TextField,
   InputAdornment,
