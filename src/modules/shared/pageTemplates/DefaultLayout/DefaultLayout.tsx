@@ -1,27 +1,21 @@
-import { FC } from 'react';
+import { FC, ReactElement } from 'react';
 import { useTheme } from '@mui/material';
 
-import { Header } from 'src/modules/shared/components';
 import { Box } from 'src/shared/components';
 
 import { createStyles } from './DefaultLayout.style';
 
 type Props = {
-  withHeader?: boolean;
+  header?: ReactElement;
 };
 
-const DefaultLayout: FC<Props> = ({ children, withHeader = false }) => {
+const DefaultLayout: FC<Props> = ({ children, header }) => {
   const theme = useTheme();
-  const styles = createStyles({ withHeader }, theme);
+  const styles = createStyles({ header }, theme);
 
   return (
     <Box css={styles.root()}>
-      {withHeader && (
-        <Box css={styles.header()}>
-          <Header />
-        </Box>
-      )}
-
+      {header && <Box css={styles.header()}>{header}</Box>}
       {children}
     </Box>
   );

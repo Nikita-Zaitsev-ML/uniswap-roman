@@ -13,6 +13,7 @@ const createStyles = () => ({
     justify-content: center;
     align-items: center;
   `,
+  address: () => css``,
 });
 
 export { createStyles };

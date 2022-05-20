@@ -1,14 +1,25 @@
 import { FC } from 'react';
 import { useRouter } from 'next/router';
+import { AsyncReturnType } from 'type-fest';
 
-import { Header as HeaderComponent } from 'src/shared/components';
+import {
+  Header as HeaderComponent,
+  Button,
+  Typography,
+} from 'src/shared/components';
+import { connectMetaMask } from 'src/shared/api/blockchain/rinkeby';
 
 import { Logo } from '../Icons';
 import { routes, items } from './constants';
 
-type Props = {};
+type Props = {
+  user: { address: string; balance: string } | null;
+  onAuth?: (
+    metaMaskConnection: AsyncReturnType<typeof connectMetaMask>
+  ) => void;
+};
 
-const Header: FC<Props> = () => {
+const Header: FC<Props> = ({ user, onAuth }) => {
   const { pathname } = useRouter();
   const navigation = {
     items: items.map((item) => {
@@ -20,7 +31,35 @@ const Header: FC<Props> = () => {
     }),
   };
 
-  return <HeaderComponent logo={<Logo />} navigation={navigation} />;
+  const handleAuthClick = async () => {
+    const metaMaskConnection = await connectMetaMask();
+
+    onAuth?.(metaMaskConnection);
+  };
+
+  return (
+    <HeaderComponent
+      logo={<Logo />}
+      navigation={navigation}
+      settings={
+        <>
+          {user === null ? (
+            <Button variant="contained" size="small" onClick={handleAuthClick}>
+              Подключить кошелек
+            </Button>
+          ) : (
+            <>
+              <Typography>
+                Адрес:{' '}
+                {`${user.address.slice(0, 5)}..${user.address.slice(-3)}`}
+              </Typography>
+              <Typography>Баланс: {user.balance} ETH</Typography>
+            </>
+          )}
+        </>
+      }
+    />
+  );
 };
 
 export type { Props };

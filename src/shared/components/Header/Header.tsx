@@ -1,4 +1,4 @@
-import { FC, ReactNode } from 'react';
+import { FC, ReactElement } from 'react';
 import {
   AppBarProps as MUIHeaderProps,
   AppBar as MUIHeader,
@@ -13,13 +13,15 @@ import { createStyles } from './Header.style';
 import { defaultNavigationItems } from './constants';
 
 type Props = MUIHeaderProps & {
-  logo: ReactNode;
+  logo: ReactElement;
   navigation?: NavigationProps;
+  settings?: ReactElement;
 };
 
 const Header: FC<Props> = ({
   navigation = { items: defaultNavigationItems },
   logo,
+  settings,
   ...MUIProps
 }) => {
   const theme = useTheme();
@@ -36,7 +38,7 @@ const Header: FC<Props> = ({
         <Box css={styles.navigation()}>
           <Navigation {...navigation} />
         </Box>
-        <Box css={styles.settings()}></Box>
+        <Box css={styles.settings()}>{settings}</Box>
       </MUIToolbar>
     </MUIHeader>
   );

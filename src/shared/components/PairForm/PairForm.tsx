@@ -22,6 +22,7 @@ type Props = {
   max: [number, number];
   submitValue: string;
   isSubmitDisabled?: boolean;
+  onPairSet?: (data: { isSet: boolean }) => void;
   onSubmit: (data: FormState) => void;
   switchBtn?: { value: string; onClick: () => void };
 };
@@ -33,6 +34,7 @@ const PairForm: FC<Props> = ({
   submitValue,
   isSubmitDisabled = false,
   switchBtn = undefined,
+  onPairSet,
   onSubmit,
 }) => {
   const theme = useTheme();
@@ -61,7 +63,11 @@ const PairForm: FC<Props> = ({
     setShouldRerender(undefined);
   }, [shouldRerender]);
 
-  console.log(watch());
+  onPairSet?.({
+    isSet: state.theFirstItem !== '' && state.theSecondItem !== '',
+  });
+
+  console.log(state);
   console.log(errors);
 
   const [theFirstItemMax, theSecondItemMax] = max;

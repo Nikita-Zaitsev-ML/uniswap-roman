@@ -4,11 +4,11 @@ import { Theme } from 'src/shared/styles/theme';
 
 import type { Props } from './DefaultLayout';
 
-const createStyles = (props: Pick<Props, 'withHeader'>, theme: Theme) => ({
+const createStyles = (props: Pick<Props, 'header'>, theme: Theme) => ({
   root: () => {
     const layout = css`
       grid:
-        ${props.withHeader && "'header' auto"}
+        ${props.header && "'header' auto"}
         'content' 1fr / auto;
     `;
 

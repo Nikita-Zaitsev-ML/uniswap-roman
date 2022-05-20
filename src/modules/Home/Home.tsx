@@ -1,30 +1,45 @@
 import { DefaultLayout } from 'src/modules/shared/pageTemplates';
-import { Head } from 'src/modules/shared/components';
+import { Head, Header } from 'src/modules/shared/components';
 import { Swap } from 'src/features/Swap';
 import type { NextPageWithLayout } from 'src/shared/types';
 import { Box, Container } from 'src/shared/components';
 
+import { useAuth } from '../shared/hooks';
 import { createStyles } from './Home.style';
 
 const Home: NextPageWithLayout = () => {
   const styles = createStyles();
 
+  const { connection, user, error, handleHeaderOnAuth } = useAuth();
+
   return (
     <>
       <Head title="Главная страница" keywords="" description="" />
-      <Container>
-        <Box css={styles.root()} component="main">
-          <Box css={styles.grid()}>
-            <Swap />
+
+      <DefaultLayout
+        header={<Header user={user} onAuth={handleHeaderOnAuth} />}
+      >
+        <Container>
+          <Box css={styles.root()} component="main">
+            <Box css={styles.grid()}>
+              {error === '' ? (
+                <Swap
+                  provider={connection && connection.provider}
+                  signer={connection && connection.signer}
+                />
+              ) : (
+                error
+              )}
+            </Box>
           </Box>
-        </Box>
-      </Container>
+        </Container>
+      </DefaultLayout>
     </>
   );
 };
 
 Home.getLayout = (page) => {
-  return <DefaultLayout withHeader>{page}</DefaultLayout>;
+  return page;
 };
 
 export { Home };

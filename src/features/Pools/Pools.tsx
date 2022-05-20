@@ -1,13 +1,18 @@
 import { FC, useState } from 'react';
+import { ethers } from 'ethers';
 
 import { PairForm } from 'src/shared/components';
 
 import { ViewPairs } from './view/containers/ViewPairs';
-import type { ViewType } from './types';
+import type { SubmitButtonValue, ViewType } from './types';
 
-type Props = {};
+type Props = {
+  provider: ethers.providers.Web3Provider | null;
+  signer: ethers.providers.JsonRpcSigner | null;
+};
 
-const Pools: FC<Props> = () => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const Pools: FC<Props> = ({ provider, signer }) => {
   // TODO: useRedux
   const [viewType, setViewType] = useState<ViewType>('edit');
 
@@ -24,7 +29,27 @@ const Pools: FC<Props> = () => {
   const theFirstTokenMax = 10;
   const theSecondTokenMax = 200;
 
-  const isSubmitDisabled = false;
+  const isAuth = provider !== null && signer !== null;
+
+  const [submitValue, setSubmitValue] =
+    useState<SubmitButtonValue>('Подключите кошелек');
+
+  if (submitValue === 'Подключите кошелек' && isAuth) {
+    setSubmitValue('Выберите токены');
+  }
+
+  const isSubmitDisabled =
+    submitValue === 'Подключите кошелек' || submitValue === 'Выберите токены';
+
+  const handlePairFormPairSet: Parameters<
+    typeof PairForm
+  >['0']['onPairSet'] = ({ isSet }) => {
+    if (isAuth) {
+      setSubmitValue(isSet ? 'Добавить пару' : 'Выберите токены');
+    } else {
+      setSubmitValue(isSet ? 'Добавить пару' : 'Подключите кошелек');
+    }
+  };
 
   const onSubmit: Parameters<typeof PairForm>['0']['onSubmit'] = (data) => {
     console.log('d: ', data);
@@ -39,8 +64,9 @@ const Pools: FC<Props> = () => {
       items={tokens}
       itemText={'токен'}
       max={[theFirstTokenMax, theSecondTokenMax]}
-      submitValue="Добавить пару"
+      submitValue={submitValue}
       isSubmitDisabled={isSubmitDisabled}
+      onPairSet={handlePairFormPairSet}
       onSubmit={onSubmit}
     />
   ) : (

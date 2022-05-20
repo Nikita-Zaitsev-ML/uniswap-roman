@@ -12,10 +12,19 @@ const createStyles = (props: {}, theme: Theme) => ({
     justify-content: space-between;
   `,
   logo: () => css`
+    flex: 0 1 33.33%;
     color: white;
   `,
-  navigation: () => css``,
-  settings: () => css``,
+  navigation: () =>
+    css`
+      flex: 0 1 fit-content;
+    `,
+  settings: () => css`
+    flex: 0 1 33.33%;
+    display: grid;
+    grid-auto-flow: column;
+    gap: ${theme.spacing(4)};
+  `,
 });
 
 export { createStyles };
