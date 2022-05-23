@@ -3,7 +3,7 @@ import { useTheme } from '@mui/material';
 
 import { Card, Box, Typography, Button } from 'src/shared/components';
 
-import { Pair } from '../../types';
+import { Pair } from '../../../types';
 import { createStyles } from './ViewPairs.style';
 
 type Props = { switchBtn: { value: string; onClick: () => void } };

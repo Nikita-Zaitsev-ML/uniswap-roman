@@ -48,6 +48,7 @@ const Swap: FC<Props> = ({ provider, signer }) => {
 
   return (
     <PairForm
+      title="Обменять"
       items={tokens}
       itemText={'токен'}
       max={[theFirstTokenMax, theSecondTokenMax]}

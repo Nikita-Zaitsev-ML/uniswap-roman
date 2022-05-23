@@ -1,22 +1,18 @@
 import { FC } from 'react';
 import { useRouter } from 'next/router';
-import { AsyncReturnType } from 'type-fest';
 
 import {
   Header as HeaderComponent,
   Button,
   Typography,
 } from 'src/shared/components';
-import { connectMetaMask } from 'src/shared/api/blockchain/rinkeby';
 
 import { Logo } from '../Icons';
 import { routes, items } from './constants';
 
 type Props = {
   user: { address: string; balance: string } | null;
-  onAuth?: (
-    metaMaskConnection: AsyncReturnType<typeof connectMetaMask>
-  ) => void;
+  onAuth?: () => Promise<void>;
 };
 
 const Header: FC<Props> = ({ user, onAuth }) => {
@@ -32,9 +28,7 @@ const Header: FC<Props> = ({ user, onAuth }) => {
   };
 
   const handleAuthClick = async () => {
-    const metaMaskConnection = await connectMetaMask();
-
-    onAuth?.(metaMaskConnection);
+    onAuth?.();
   };
 
   return (

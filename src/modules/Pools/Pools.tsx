@@ -12,8 +12,6 @@ const Pools: NextPageWithLayout = () => {
 
   const { connection, user, error, handleHeaderOnAuth } = useAuth();
 
-  console.log(connection);
-
   return (
     <>
       <Head title="Пулы" keywords="" description="" />
@@ -25,6 +23,7 @@ const Pools: NextPageWithLayout = () => {
             <Box css={styles.grid()}>
               {error === '' ? (
                 <PoolsFeature
+                  userAddress={user?.address || ''}
                   provider={connection && connection.provider}
                   signer={connection && connection.signer}
                 />

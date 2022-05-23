@@ -5,6 +5,7 @@ import { Breadcrumbs } from './Breadcrumbs/Breadcrumbs';
 import { Container } from './Container/Container';
 import { Header } from './Header/Header';
 import {
+  Add,
   ArrowDownward,
   ArrowRightIcon,
   CloudDoneIcon,
@@ -48,6 +49,7 @@ export {
   Breadcrumbs,
   Container,
   Header,
+  Add,
   ArrowDownward,
   ArrowRightIcon,
   CloudDoneIcon,

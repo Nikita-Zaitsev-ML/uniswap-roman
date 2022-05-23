@@ -1,3 +1,20 @@
+import type { RequestStatus } from 'src/shared/helpers/redux';
+
+type State = {
+  status: RequestStatus;
+  data: {
+    tokens: {
+      address: string;
+      name: string;
+      userBalance: number;
+      decimals: number;
+    }[];
+  };
+  error: string | null;
+};
+
+type ViewType = 'edit' | 'view';
+
 type SubmitButtonValue =
   | 'Подключите кошелек'
   | 'Выберите токены'
@@ -5,6 +22,4 @@ type SubmitButtonValue =
 
 type Pair = { tokens: [string, string]; balance: number };
 
-type ViewType = 'edit' | 'view';
-
-export type { SubmitButtonValue, Pair, ViewType };
+export type { State, ViewType, SubmitButtonValue, Pair };

@@ -1,4 +1,13 @@
 import type { NextPageWithLayout } from './nextJS';
-import type { Unpacked } from './utility';
+import type {
+  RecordMethodsToItsParameters,
+  RecordMethodsToItsReturnType,
+  Unpacked,
+} from './utility';
 
-export type { NextPageWithLayout, Unpacked };
+export type {
+  NextPageWithLayout,
+  RecordMethodsToItsParameters,
+  RecordMethodsToItsReturnType,
+  Unpacked,
+};
