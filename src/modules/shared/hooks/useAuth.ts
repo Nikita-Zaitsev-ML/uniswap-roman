@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
 
-import { connectMetaMask } from 'src/shared/api/blockchain/rinkeby';
+import { connectMetaMask } from 'src/shared/api/blockchain/utils';
 
 let connection: {
   provider: ethers.providers.Web3Provider;

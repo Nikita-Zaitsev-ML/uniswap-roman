@@ -21,8 +21,8 @@ const connectMetaMask = async () => {
     const signer = provider.getSigner();
 
     return { provider, signer };
-  } catch (error: any) {
-    return new Error(error.message);
+  } catch (error) {
+    return <globalThis.Error>error;
   }
 };
 

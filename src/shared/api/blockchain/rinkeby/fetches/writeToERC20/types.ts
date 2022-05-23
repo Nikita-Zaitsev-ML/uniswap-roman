@@ -1,13 +1,17 @@
+import { Signer } from 'ethers';
+
 import {
   RecordMethodsToItsParameters,
   RecordMethodsToItsReturnType,
 } from 'src/shared/types';
 
-import { initContract } from '../../initContract';
-import { ERC20WriteAPI } from '../../../types';
+import { Address, ERC20WriteAPI } from '../../../types';
 
 type QueryParameters = {
-  contractParameters: Parameters<typeof initContract>;
+  contractParameters: {
+    address: Address;
+    signer: Signer;
+  };
   methods: Partial<RecordMethodsToItsParameters<ERC20WriteAPI>>;
 };
 type Response = RecordMethodsToItsReturnType<ERC20WriteAPI>;

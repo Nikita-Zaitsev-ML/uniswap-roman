@@ -1,3 +1,4 @@
 import { callContractMethods } from './callContractMethods';
+import { connectMetaMask } from './connectMetaMask';
 
-export { callContractMethods };
+export { callContractMethods, connectMetaMask };

@@ -1,8 +1,8 @@
-import { initContract } from '../rinkeby/initContract';
+import { ethers } from 'ethers';
 
 const callContractMethods = async <
   QueryParameters extends {
-    contractParameters: Parameters<typeof initContract>;
+    contractParameters: ConstructorParameters<typeof ethers.Contract>;
     methods: { [key: string]: unknown[] };
   },
   Response
@@ -11,7 +11,8 @@ const callContractMethods = async <
   methods,
 }: QueryParameters): Promise<Response | globalThis.Error> => {
   try {
-    const contract = initContract(...contractParameters);
+    const contract = new ethers.Contract(...contractParameters);
+
     const entries = Object.entries(methods);
 
     const data = await Promise.all(

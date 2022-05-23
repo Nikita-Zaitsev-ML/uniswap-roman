@@ -1,11 +1,11 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { ethers } from 'ethers';
 
-import { contracts } from 'src/shared/api/blockchain/rinkeby';
 import {
-  GetERC20InfoResponse,
-  fetchGetERC20Info,
-} from 'src/shared/api/blockchain/rinkeby/fetches/getERC20Info';
+  ReadFromERC20Response,
+  fetchReadFromERC20,
+} from 'src/shared/api/blockchain/rinkeby/fetches/readFromERC20';
+import { contracts } from 'src/shared/api/blockchain/rinkeby/constants';
 
 type Options = {
   userAddress: string;
@@ -13,7 +13,7 @@ type Options = {
 };
 
 type FetchedData = Pick<
-  GetERC20InfoResponse,
+  ReadFromERC20Response,
   'name' | 'balanceOf' | 'decimals'
 > & { address: string };
 
@@ -21,9 +21,9 @@ const getTokens = createAsyncThunk(
   'Pools/getTokens',
   async ({ userAddress, provider }: Options): Promise<FetchedData[]> => {
     const result = await Promise.all(
-      contracts.tokens.map(async ({ address, ABI }) => {
-        const contractInfo = await fetchGetERC20Info({
-          contractParameters: [address, ABI, provider],
+      contracts.tokens.map(async ({ address }) => {
+        const contractInfo = await fetchReadFromERC20({
+          contractParameters: { address, provider },
           methods: { name: [], balanceOf: [userAddress], decimals: [] },
         });
 

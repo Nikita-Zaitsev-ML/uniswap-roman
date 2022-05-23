@@ -76,7 +76,10 @@ const PairForm: FC<Props> = ({
     (event, value) => {
       const name = value?.name || '';
 
+      console.log('change', value);
+
       setValue('theFirstItem', name);
+      setValue('theFirstItemValue', '');
       onPairSet?.({
         pair: [
           { name, value: '' },
@@ -84,6 +87,7 @@ const PairForm: FC<Props> = ({
         ],
         isSet: name !== '' && state.theSecondItem !== '',
       });
+      setShouldRerender(true);
     };
 
   const handleTheFirstItemMaxClick = () => {
@@ -96,6 +100,7 @@ const PairForm: FC<Props> = ({
       const name = value?.name || '';
 
       setValue('theSecondItem', name);
+      setValue('theSecondItemValue', '');
       onPairSet?.({
         pair: [
           { name: state.theFirstItem, value: state.theFirstItemValue },
@@ -103,6 +108,7 @@ const PairForm: FC<Props> = ({
         ],
         isSet: state.theFirstItem !== '' && name !== '',
       });
+      setShouldRerender(true);
     };
 
   const handleTheSecondItemMaxClick = () => {

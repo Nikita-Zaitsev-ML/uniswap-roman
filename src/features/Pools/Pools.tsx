@@ -80,18 +80,18 @@ const Pools: FC<Props> = ({ userAddress, provider, signer }) => {
   };
 
   const onSubmit: Parameters<typeof PairForm>['0']['onSubmit'] = (
-    submition
+    submission
   ) => {
-    console.log('d: ', submition, tokens);
-    const { theFirstItem, theSecondItem } = submition;
+    console.log('d: ', submission, tokens);
+    const { theFirstItem, theSecondItem } = submission;
     const tokenIn = tokens.find((token) => token.name === theFirstItem);
     const tokenOut = tokens.find((token) => token.name === theSecondItem);
 
     const tokenInAddress = tokenIn?.address;
-    const tokenInValue = Number(submition.theFirstItemValue);
+    const tokenInValue = Number(submission.theFirstItemValue);
     const tokenInDecimals = tokenIn?.decimals;
     const tokenOutAddress = tokenOut?.address;
-    const tokenOutValue = Number(submition.theSecondItemValue);
+    const tokenOutValue = Number(submission.theSecondItemValue);
     const tokenOutDecimals = tokenOut?.decimals;
 
     const areOptionsValid =
@@ -99,6 +99,7 @@ const Pools: FC<Props> = ({ userAddress, provider, signer }) => {
       tokenInDecimals !== undefined &&
       tokenOutAddress !== undefined &&
       tokenOutDecimals !== undefined &&
+      provider !== null &&
       signer !== null;
 
     if (areOptionsValid) {
@@ -110,6 +111,7 @@ const Pools: FC<Props> = ({ userAddress, provider, signer }) => {
           tokenOutAddress,
           tokenOutValue,
           tokenOutDecimals,
+          provider,
           signer,
         })
       );

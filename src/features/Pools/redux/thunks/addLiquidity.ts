@@ -1,11 +1,11 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { ethers } from 'ethers';
+import type { Provider } from '@ethersproject/abstract-provider';
 
-import { fetchGetRegistryInfo } from 'src/shared/api/blockchain/rinkeby/fetches/getRegistryInfo';
-import { fetchSetToRouter } from 'src/shared/api/blockchain/rinkeby/fetches/setToRouter';
-import { fetchSetToERC20 } from 'src/shared/api/blockchain/rinkeby/fetches/setToERC20';
-import { contracts } from 'src/shared/api/blockchain/rinkeby';
-import { fetchSetToFactory } from 'src/shared/api/blockchain/rinkeby/fetches/setToFactory';
+import { fetchReadFromRegistry } from 'src/shared/api/blockchain/rinkeby/fetches/readFromRegistry';
+import { fetchWriteToRouter } from 'src/shared/api/blockchain/rinkeby/fetches/writeToRouter';
+import { fetchWriteToFactory } from 'src/shared/api/blockchain/rinkeby/fetches/writeToFactory';
+import { fetchWriteToERC20 } from 'src/shared/api/blockchain/rinkeby/fetches/writeToERC20';
 
 type Options = {
   tokenInAddress: string;
@@ -14,6 +14,7 @@ type Options = {
   tokenOutAddress: string;
   tokenOutValue: number;
   tokenOutDecimals: number;
+  provider: Provider;
   signer: ethers.Signer;
 };
 
@@ -26,23 +27,13 @@ const addLiquidity = createAsyncThunk(
     tokenOutAddress,
     tokenOutValue,
     tokenOutDecimals,
+    provider,
     signer,
   }: Options): Promise<void> => {
-    const { registry, factory, router, tokens } = contracts;
-    const { address: registryAddress, ABI: registryABI } = registry;
-    const { address: routerAddress, ABI: routerABI } = router;
-    const { address: factoryAddress, ABI: factoryABI } = factory;
-    const tokenIn = tokens.find((token) => token.address === tokenInAddress);
-    const tokenOut = tokens.find((token) => token.address === tokenOutAddress);
-
-    let registryInfo = await fetchGetRegistryInfo({
-      contractParameters: [registryAddress, registryABI, signer],
+    let registryInfo = await fetchReadFromRegistry({
+      contractParameters: { provider },
       methods: { getPair: [tokenInAddress, tokenOutAddress] },
     });
-
-    if (tokenIn?.ABI === undefined || tokenOut?.ABI === undefined) {
-      return Promise.reject(new Error('tokens ABI are undefined'));
-    }
 
     if (registryInfo instanceof globalThis.Error) {
       return Promise.reject(registryInfo.message);
@@ -57,17 +48,17 @@ const addLiquidity = createAsyncThunk(
     const hasPair = !/^0x0+$/.test(registryInfo.getPair);
 
     if (!hasPair) {
-      const setToFactoryResult = await fetchSetToFactory({
-        contractParameters: [factoryAddress, factoryABI, signer],
+      const writeToFactoryResult = await fetchWriteToFactory({
+        contractParameters: { signer },
         methods: { createPair: [tokenInAddress, tokenOutAddress] },
       });
 
-      if (setToFactoryResult instanceof globalThis.Error) {
-        return Promise.reject(setToFactoryResult.message);
+      if (writeToFactoryResult instanceof globalThis.Error) {
+        return Promise.reject(writeToFactoryResult.message);
       }
 
-      registryInfo = await fetchGetRegistryInfo({
-        contractParameters: [registryAddress, registryABI, signer],
+      registryInfo = await fetchReadFromRegistry({
+        contractParameters: { provider },
         methods: { getPair: [tokenInAddress, tokenOutAddress] },
       });
 
@@ -82,8 +73,8 @@ const addLiquidity = createAsyncThunk(
       }
     }
 
-    const tokenInTransaction = await fetchSetToERC20({
-      contractParameters: [tokenInAddress, tokenIn?.ABI, signer],
+    const tokenInTransaction = await fetchWriteToERC20({
+      contractParameters: { address: tokenInAddress, signer },
       methods: {
         approve: [
           registryInfo.getPair,
@@ -96,8 +87,8 @@ const addLiquidity = createAsyncThunk(
       return Promise.reject(tokenInTransaction);
     }
 
-    const tokenOutTransaction = await fetchSetToERC20({
-      contractParameters: [tokenOutAddress, tokenOut?.ABI, signer],
+    const tokenOutTransaction = await fetchWriteToERC20({
+      contractParameters: { address: tokenOutAddress, signer },
       methods: {
         approve: [
           registryInfo.getPair,
@@ -113,8 +104,8 @@ const addLiquidity = createAsyncThunk(
     await tokenInTransaction.approve.wait();
     await tokenOutTransaction.approve.wait();
 
-    await fetchSetToRouter({
-      contractParameters: [routerAddress, routerABI, signer],
+    await fetchWriteToRouter({
+      contractParameters: { signer },
       methods: {
         addLiquidity: [
           tokenInAddress,

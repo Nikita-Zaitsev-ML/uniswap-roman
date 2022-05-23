@@ -3,14 +3,16 @@ import type { RequestStatus } from 'src/shared/helpers/redux';
 type State = {
   status: RequestStatus;
   data: {
-    tokens: {
-      address: string;
-      name: string;
-      userBalance: number;
-      decimals: number;
-    }[];
+    tokens: Token[];
   };
   error: string | null;
+};
+
+type Token = {
+  address: string;
+  name: string;
+  userBalance: number;
+  decimals: number;
 };
 
 type ViewType = 'edit' | 'view';
@@ -22,4 +24,4 @@ type SubmitButtonValue =
 
 type Pair = { tokens: [string, string]; balance: number };
 
-export type { State, ViewType, SubmitButtonValue, Pair };
+export type { State, Token, ViewType, SubmitButtonValue, Pair };
