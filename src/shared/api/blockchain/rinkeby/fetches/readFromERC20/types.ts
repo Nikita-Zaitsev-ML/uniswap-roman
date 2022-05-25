@@ -1,4 +1,4 @@
-import type { Provider } from '@ethersproject/abstract-provider';
+import { ethers } from 'ethers';
 
 import {
   RecordMethodsToItsParameters,
@@ -10,7 +10,7 @@ import { Address, ERC20ReadAPI } from '../../../types';
 type QueryParameters = {
   contractParameters: {
     address: Address;
-    provider: Provider;
+    provider: ethers.providers.Web3Provider;
   };
   methods: Partial<RecordMethodsToItsParameters<ERC20ReadAPI>>;
 };

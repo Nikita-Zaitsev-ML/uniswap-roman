@@ -5,7 +5,7 @@ const initialState: State = {
   error: null,
   data: {
     tokens: [],
-    pairAddress: '',
+    pairs: [],
   },
 };
 

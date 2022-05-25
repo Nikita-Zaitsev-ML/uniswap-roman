@@ -1,4 +1,6 @@
-import { getTokens } from './getTokens';
 import { addLiquidity } from './addLiquidity';
+import { getPairs } from './getPairs';
+import { getTokens } from './getTokens';
+import { removeLiquidity } from './removeLiquidity';
 
-export { getTokens, addLiquidity };
+export { addLiquidity, getPairs, getTokens, removeLiquidity };

@@ -8,11 +8,22 @@ type Props = Omit<
   'ref' | 'value' | 'defaultValue'
 > & {
   max?: number;
+  onValueChange?: ConstructorParameters<
+    typeof NumberFormat
+  >['0']['onValueChange'];
 };
 
-const MaskedDecimalField: FC<Props> = ({ max, ...textFieldProps }) => {
+const MaskedDecimalField: FC<Props> = ({
+  max,
+  onValueChange,
+  ...textFieldProps
+}) => {
   const withValueLimit = ({ floatValue }: NumberFormatValues) => {
-    return max !== undefined && floatValue !== undefined && floatValue <= max;
+    if (floatValue === undefined) {
+      return true;
+    }
+
+    return max !== undefined && floatValue <= max;
   };
 
   return (
@@ -20,6 +31,7 @@ const MaskedDecimalField: FC<Props> = ({ max, ...textFieldProps }) => {
       allowNegative={false}
       isAllowed={withValueLimit}
       customInput={TextField}
+      onValueChange={onValueChange}
       {...textFieldProps}
       type="text"
       inputProps={{

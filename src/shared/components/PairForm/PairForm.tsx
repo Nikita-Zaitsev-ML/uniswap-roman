@@ -18,30 +18,45 @@ import { createStyles } from './PairForm.style';
 
 type Props = {
   title: string;
+  hint?: string;
   actionIcon?: ReactElement;
   items: Item[];
   itemText: string;
+  values?: [string, string];
   max: [number, number];
+  isMaxSync?: boolean;
   submitValue: string;
   isSubmitDisabled?: boolean;
   onPairSet?: (data: {
     pair: [{ name: string; value: string }, { name: string; value: string }];
     isSet: boolean;
   }) => void;
+  onValueChange?: (
+    event:
+      | {
+          value: number | undefined;
+          field: 'theFirst' | 'theSecond';
+        }
+      | undefined
+  ) => void;
   onSubmit: (data: FormState) => void;
   switchBtn?: { value: string; onClick: () => void };
 };
 
 const PairForm: FC<Props> = ({
   title,
+  hint = '',
   actionIcon = <ArrowDownward />,
   items,
   itemText,
+  values = undefined,
   max,
+  isMaxSync = false,
   submitValue,
   isSubmitDisabled = false,
   switchBtn = undefined,
   onPairSet,
+  onValueChange,
   onSubmit,
 }) => {
   const theme = useTheme();
@@ -66,6 +81,15 @@ const PairForm: FC<Props> = ({
 
   // FIXME: this is a crutch to combine the controlled and uncontrolled behavior of NumberFormat - I did not understand how to use NumberFormat validation together with the react-hook-form state
   const [shouldRerender, setShouldRerender] = useState<undefined | true>();
+
+  useEffect(() => {
+    if (values !== undefined) {
+      setValue('theFirstItemValue', `${values[0]}`);
+      setValue('theSecondItemValue', `${values[1]}`);
+      setShouldRerender(true);
+    }
+  }, [setValue, values]);
+
   useEffect(() => {
     setShouldRerender(undefined);
   }, [shouldRerender]);
@@ -76,10 +100,10 @@ const PairForm: FC<Props> = ({
     (event, value) => {
       const name = value?.name || '';
 
-      console.log('change', value);
-
       setValue('theFirstItem', name);
       setValue('theFirstItemValue', '');
+      setValue('theSecondItemValue', '');
+
       onPairSet?.({
         pair: [
           { name, value: '' },
@@ -92,6 +116,11 @@ const PairForm: FC<Props> = ({
 
   const handleTheFirstItemMaxClick = () => {
     setValue('theFirstItemValue', `${theFirstItemMax}`);
+
+    if (isMaxSync) {
+      setValue('theSecondItemValue', `${theSecondItemMax}`);
+    }
+
     setShouldRerender(true);
   };
 
@@ -100,7 +129,9 @@ const PairForm: FC<Props> = ({
       const name = value?.name || '';
 
       setValue('theSecondItem', name);
+      setValue('theFirstItemValue', '');
       setValue('theSecondItemValue', '');
+
       onPairSet?.({
         pair: [
           { name: state.theFirstItem, value: state.theFirstItemValue },
@@ -113,7 +144,22 @@ const PairForm: FC<Props> = ({
 
   const handleTheSecondItemMaxClick = () => {
     setValue('theSecondItemValue', `${theSecondItemMax}`);
+
+    if (isMaxSync) {
+      setValue('theFirstItemValue', `${theFirstItemMax}`);
+    }
+
     setShouldRerender(true);
+  };
+
+  const makeHandleValueChange = (field: 'theFirst' | 'theSecond') => {
+    const handleValueChange: Parameters<
+      typeof FieldWithAutocomplete
+    >['0']['onValueChange'] = ({ floatValue }) => {
+      onValueChange?.({ value: floatValue, field });
+    };
+
+    return handleValueChange;
   };
 
   return (
@@ -154,6 +200,7 @@ const PairForm: FC<Props> = ({
                 variant="filled"
                 fullWidth
                 handleAutocompleteChange={handleTheFirstItemAutocompleteChange}
+                onValueChange={makeHandleValueChange('theFirst')}
                 handleMaxClick={handleTheFirstItemMaxClick}
               />
               <Box css={styles.arrow()}>{actionIcon}</Box>
@@ -178,8 +225,10 @@ const PairForm: FC<Props> = ({
                 variant="filled"
                 fullWidth
                 handleAutocompleteChange={handleTheSecondItemAutocompleteChange}
+                onValueChange={makeHandleValueChange('theSecond')}
                 handleMaxClick={handleTheSecondItemMaxClick}
               />
+              {hint}
               <Button
                 type="submit"
                 variant="contained"

@@ -1,6 +1,5 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { ethers } from 'ethers';
-import type { Provider } from '@ethersproject/abstract-provider';
 
 import { fetchReadFromRegistry } from 'src/shared/api/blockchain/rinkeby/fetches/readFromRegistry';
 import { fetchWriteToRouter } from 'src/shared/api/blockchain/rinkeby/fetches/writeToRouter';
@@ -14,7 +13,7 @@ type Options = {
   tokenOutAddress: string;
   tokenOutValue: number;
   tokenOutDecimals: number;
-  provider: Provider;
+  provider: ethers.providers.Web3Provider;
   signer: ethers.Signer;
 };
 

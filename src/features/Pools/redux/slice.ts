@@ -2,7 +2,7 @@ import { createSlice } from '@reduxjs/toolkit';
 import { defaults } from 'lodash';
 
 import { initialState } from './initialState';
-import { getTokens, addLiquidity } from './thunks';
+import { addLiquidity, getTokens, getPairs, removeLiquidity } from './thunks';
 import { selectPools } from './selectors';
 
 const slice = createSlice({
@@ -24,6 +24,19 @@ const slice = createSlice({
         state.status = 'rejected';
         state.error = action.error.message ?? '';
       })
+      .addCase(getPairs.pending, (state) => {
+        state.status = 'pending';
+      })
+      .addCase(getPairs.fulfilled, (state, action) => {
+        const { payload } = action;
+
+        state.status = 'fulfilled';
+        state.data.pairs = defaults(payload, initialState.data.pairs);
+      })
+      .addCase(getPairs.rejected, (state, action) => {
+        state.status = 'rejected';
+        state.error = action.error.message ?? '';
+      })
       .addCase(addLiquidity.pending, (state) => {
         state.status = 'pending';
       })
@@ -33,10 +46,27 @@ const slice = createSlice({
       .addCase(addLiquidity.rejected, (state, action) => {
         state.status = 'rejected';
         state.error = action.error.message ?? '';
+      })
+      .addCase(removeLiquidity.pending, (state) => {
+        state.status = 'pending';
+      })
+      .addCase(removeLiquidity.fulfilled, (state) => {
+        state.status = 'fulfilled';
+      })
+      .addCase(removeLiquidity.rejected, (state, action) => {
+        state.status = 'rejected';
+        state.error = action.error.message ?? '';
       });
   },
 });
 
 const { reducer } = slice;
 
-export { reducer, selectPools, getTokens, addLiquidity };
+export {
+  reducer,
+  selectPools,
+  addLiquidity,
+  getTokens,
+  getPairs,
+  removeLiquidity,
+};
