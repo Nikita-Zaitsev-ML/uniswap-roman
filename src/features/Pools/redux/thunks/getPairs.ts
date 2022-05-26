@@ -80,15 +80,6 @@ const getPairs = createAsyncThunk(
           balanceOfToken0.isZero() ||
           balanceOfToken1.isZero();
 
-        if (!isProportionUndefined) {
-          console.log(
-            address,
-            ethers.utils.formatUnits(balanceOf),
-            ethers.utils.formatUnits(balanceOfToken0.toString()),
-            ethers.utils.formatUnits(balanceOfToken1.toString())
-          );
-        }
-
         const proportion = isProportionUndefined
           ? 'any'
           : divDecimals(

@@ -22,8 +22,8 @@ type Props = {
   actionIcon?: ReactElement;
   items: Item[];
   itemText: string;
-  values?: [string, string];
-  max: [string, string];
+  values?: string[];
+  max: string[];
   isMaxSync?: boolean;
   submitValue: string;
   isSubmitDisabled?: boolean;
@@ -155,8 +155,7 @@ const PairForm: FC<Props> = ({
   const makeHandleValueChange = (field: 'theFirst' | 'theSecond') => {
     const handleValueChange: Parameters<
       typeof FieldWithAutocomplete
-    >['0']['onValueChange'] = ({ value, formattedValue }) => {
-      console.log(value, formattedValue);
+    >['0']['onValueChange'] = ({ value }) => {
       onValueChange?.({ value, field });
     };
 

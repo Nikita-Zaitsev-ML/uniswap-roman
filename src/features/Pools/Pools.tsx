@@ -23,13 +23,12 @@ const Pools: FC<Props> = ({ userAddress, provider, signer }) => {
   const isAuth = provider !== null && signer !== null;
 
   const [viewType, setViewType] = useState<ViewType>('add');
-  const [isPairBalanceZero, setIsPairBalanceZero] = useState(false);
-  const [tokenValues, setTokenValues] = useState<[string, string]>(['', '']);
+  const [tokenValues, setTokenValues] = useState<string[]>(['', '']);
   const [proportion, setProportion] = useState<{
     value: string | 'any' | '';
     decimals: number;
   }>({ value: '', decimals: 0 });
-  const [tokensMax, setTokensMax] = useState<[string, string]>(['0', '0']);
+  const [tokensMax, setTokensMax] = useState<string[]>(['0', '0']);
   const [submitValue, setSubmitValue] =
     useState<SubmitButtonValue>('Подключите кошелек');
 
@@ -58,9 +57,14 @@ const Pools: FC<Props> = ({ userAddress, provider, signer }) => {
     if (viewType === 'remove') {
       setTokensMax(['0', '0']);
       setProportion({ value: '', decimals: 0 });
-      setIsPairBalanceZero(false);
+
+      if (isAuth) {
+        setSubmitValue('Выберите токены');
+      } else {
+        setSubmitValue('Подключите кошелек');
+      }
     }
-  }, [viewType]);
+  }, [viewType, isAuth]);
 
   if (submitValue === 'Подключите кошелек' && isAuth) {
     setSubmitValue('Выберите токены');
@@ -97,63 +101,87 @@ const Pools: FC<Props> = ({ userAddress, provider, signer }) => {
           token0.address === tokenOutData?.address)
     );
 
-    if (existedPair?.proportion === 'any') {
-      setIsPairBalanceZero(true);
-    } else {
-      setIsPairBalanceZero(false);
-    }
-
-    const tokensMaxToSet = pair.map(({ name }, index) => {
-      if (name === '' || existedPair === undefined) {
-        return '0';
-      }
-
+    if (existedPair !== undefined) {
       const {
         tokens: [token0, token1],
       } = existedPair;
 
-      if (existedPair.proportion === 'any') {
-        return index === 0 ? token0.userBalance : token1.userBalance;
-      }
+      const tokensMaxToSet = pair.map(({ name }, index) => {
+        if (name === '' || existedPair === undefined) {
+          return '0';
+        }
 
-      if (index === 1) {
-        const maxToken1 = divDecimals(
-          token0.userBalance,
+        if (existedPair.proportion === 'any') {
+          return index === 0 ? token0.userBalance : token1.userBalance;
+        }
+
+        if (index === 1) {
+          const maxToken1 = divDecimals(
+            token0.userBalance,
+            existedPair.proportion,
+            existedPair.decimals,
+            existedPair.decimals
+          );
+
+          const token1MaxToSet = ethers.BigNumber.from(maxToken1).gt(
+            ethers.BigNumber.from(token1.userBalance)
+          )
+            ? token1.userBalance
+            : maxToken1;
+
+          return token1MaxToSet;
+        }
+
+        const maxToken0 = mulDecimals(
+          token1.userBalance,
           existedPair.proportion,
           existedPair.decimals,
           existedPair.decimals
         );
-
-        const token1MaxToSet = ethers.BigNumber.from(maxToken1).gt(
-          ethers.BigNumber.from(token1.userBalance)
+        const token0MaxToSet = ethers.BigNumber.from(maxToken0).gt(
+          ethers.BigNumber.from(token0.userBalance)
         )
-          ? token1.userBalance
-          : maxToken1;
+          ? token0.userBalance
+          : maxToken0;
 
-        return token1MaxToSet;
+        return token0MaxToSet;
+      });
+
+      const shouldReverse =
+        token0.address === tokenOutData?.address &&
+        token1.address === tokenInData?.address;
+
+      if (shouldReverse) {
+        setProportion({
+          value:
+            existedPair.proportion === 'any'
+              ? 'any'
+              : divDecimals(
+                  `1${'0'.repeat(existedPair.decimals)}`,
+                  existedPair.proportion,
+                  existedPair.decimals,
+                  existedPair.decimals
+                ),
+          decimals: existedPair.decimals,
+        });
+
+        setTokenValues(tokenValues.reverse());
+        setTokensMax(tokensMaxToSet.reverse());
+      } else {
+        setProportion({
+          value: existedPair.proportion,
+          decimals: existedPair.decimals,
+        });
+        setTokensMax(tokensMaxToSet);
       }
-
-      const maxToken0 = mulDecimals(
-        token1.userBalance,
-        existedPair.proportion,
-        existedPair.decimals,
-        existedPair.decimals
-      );
-      const token0MaxToSet = ethers.BigNumber.from(maxToken0).gt(
-        ethers.BigNumber.from(token0.userBalance)
-      )
-        ? token0.userBalance
-        : maxToken0;
-
-      return token0MaxToSet;
-    }) as [string, string];
-
-    setProportion({
-      value: existedPair?.proportion || '',
-      decimals: existedPair?.decimals || 0,
-    });
-
-    setTokensMax(tokensMaxToSet);
+    } else {
+      setProportion({
+        value: '',
+        decimals: 0,
+      });
+      setTokenValues(['', '']);
+      setTokensMax(['0', '0']);
+    }
   };
 
   const onValueChange: Parameters<typeof PairForm>['0']['onValueChange'] = (
@@ -162,7 +190,7 @@ const Pools: FC<Props> = ({ userAddress, provider, signer }) => {
     if (event !== undefined && proportion.value !== '') {
       const { field, value } = event;
 
-      if (value === undefined) {
+      if (value === undefined || value === '') {
         setTokenValues(['', '']);
 
         return;
@@ -195,7 +223,7 @@ const Pools: FC<Props> = ({ userAddress, provider, signer }) => {
               ? tokenValues[0]
               : mulDecimals(
                   ethers.BigNumber.from(
-                    ethers.utils.parseUnits(`${value}`, proportion.decimals)
+                    ethers.utils.parseUnits(value, proportion.decimals)
                   ).toString(),
                   proportion.value,
                   proportion.decimals,
@@ -204,7 +232,7 @@ const Pools: FC<Props> = ({ userAddress, provider, signer }) => {
 
           setTokenValues([
             computedValue,
-            ethers.utils.parseUnits(`${value}`).toString(),
+            ethers.utils.parseUnits(value).toString(),
           ]);
 
           break;
@@ -278,7 +306,7 @@ const Pools: FC<Props> = ({ userAddress, provider, signer }) => {
       return viewType === 'add' ? (
         <PairForm
           title={
-            isPairBalanceZero
+            proportion.value === 'any'
               ? 'Добавить ликвидность с заданием пропорции'
               : 'Добавить ликвидность'
           }
@@ -290,20 +318,16 @@ const Pools: FC<Props> = ({ userAddress, provider, signer }) => {
           }}
           items={tokens}
           itemText={'токен'}
-          values={
-            tokenValues.map((val) =>
-              val === ''
-                ? val
-                : ethers.utils.formatUnits(ethers.BigNumber.from(val))
-            ) as [string, string]
-          }
+          values={tokenValues.map((val) =>
+            val === ''
+              ? val
+              : ethers.utils.formatUnits(ethers.BigNumber.from(val))
+          )}
           onValueChange={onValueChange}
-          max={
-            tokensMax.map((max) =>
-              ethers.utils.formatUnits(ethers.BigNumber.from(max))
-            ) as [string, string]
-          }
-          isMaxSync={!isPairBalanceZero}
+          max={tokensMax.map((max) =>
+            ethers.utils.formatUnits(ethers.BigNumber.from(max))
+          )}
+          isMaxSync={!(proportion.value === 'any' || proportion.value === '')}
           submitValue={submitValue}
           isSubmitDisabled={isSubmitDisabled}
           onPairSet={handlePairFormPairSet}
