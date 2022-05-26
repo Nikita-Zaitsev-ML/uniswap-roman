@@ -4,6 +4,10 @@ import { ethers } from 'ethers';
 import { useAppDispatch, useAppSelector } from 'src/app/hooks';
 import { Add, PairForm, Typography } from 'src/shared/components';
 import { REQUEST_STATUS } from 'src/shared/helpers/redux';
+import {
+  mulDecimals,
+  divDecimals,
+} from 'src/shared/helpers/blockchain/numbers';
 
 import { ViewPairs } from './view/containers/ViewPairs/ViewPairs';
 import { selectPools, getTokens, getPairs, addLiquidity } from './redux/slice';
@@ -21,8 +25,11 @@ const Pools: FC<Props> = ({ userAddress, provider, signer }) => {
   const [viewType, setViewType] = useState<ViewType>('add');
   const [isPairBalanceZero, setIsPairBalanceZero] = useState(false);
   const [tokenValues, setTokenValues] = useState<[string, string]>(['', '']);
-  const [proportion, setProportion] = useState<number | 'any' | ''>('');
-  const [tokensMax, setTokensMax] = useState<[number, number]>([0, 0]);
+  const [proportion, setProportion] = useState<{
+    value: string | 'any' | '';
+    decimals: number;
+  }>({ value: '', decimals: 0 });
+  const [tokensMax, setTokensMax] = useState<[string, string]>(['0', '0']);
   const [submitValue, setSubmitValue] =
     useState<SubmitButtonValue>('Подключите кошелек');
 
@@ -49,8 +56,8 @@ const Pools: FC<Props> = ({ userAddress, provider, signer }) => {
 
   useEffect(() => {
     if (viewType === 'remove') {
-      setTokensMax([0, 0]);
-      setProportion('');
+      setTokensMax(['0', '0']);
+      setProportion({ value: '', decimals: 0 });
       setIsPairBalanceZero(false);
     }
   }, [viewType]);
@@ -109,25 +116,50 @@ const Pools: FC<Props> = ({ userAddress, provider, signer }) => {
         return index === 0 ? token0.userBalance : token1.userBalance;
       }
 
-      if (index === 0) {
-        const maxToken0 = token1.userBalance * existedPair.proportion;
+      if (index === 1) {
+        const maxToken1 = divDecimals(
+          token0.userBalance,
+          existedPair.proportion,
+          existedPair.decimals,
+          existedPair.decimals
+        );
 
-        return maxToken0 > token0.userBalance ? token0.userBalance : maxToken0;
+        const token1MaxToSet = ethers.BigNumber.from(maxToken1).gt(
+          ethers.BigNumber.from(token1.userBalance)
+        )
+          ? token1.userBalance
+          : maxToken1;
+
+        return token1MaxToSet;
       }
 
-      const maxToken1 = token0.userBalance / existedPair.proportion;
+      const maxToken0 = mulDecimals(
+        token1.userBalance,
+        existedPair.proportion,
+        existedPair.decimals,
+        existedPair.decimals
+      );
+      const token0MaxToSet = ethers.BigNumber.from(maxToken0).gt(
+        ethers.BigNumber.from(token0.userBalance)
+      )
+        ? token0.userBalance
+        : maxToken0;
 
-      return maxToken1 > token1.userBalance ? token1.userBalance : maxToken1;
-    }) as [number, number];
+      return token0MaxToSet;
+    }) as [string, string];
 
-    setProportion(existedPair?.proportion || '');
+    setProportion({
+      value: existedPair?.proportion || '',
+      decimals: existedPair?.decimals || 0,
+    });
+
     setTokensMax(tokensMaxToSet);
   };
 
   const onValueChange: Parameters<typeof PairForm>['0']['onValueChange'] = (
     event
   ) => {
-    if (event !== undefined && proportion !== '') {
+    if (event !== undefined && proportion.value !== '') {
       const { field, value } = event;
 
       if (value === undefined) {
@@ -139,17 +171,41 @@ const Pools: FC<Props> = ({ userAddress, provider, signer }) => {
       switch (field) {
         case 'theFirst': {
           const computedValue =
-            proportion === 'any' ? tokenValues[1] : `${value / proportion}`;
+            proportion.value === 'any'
+              ? tokenValues[1]
+              : divDecimals(
+                  ethers.BigNumber.from(
+                    ethers.utils.parseUnits(value, proportion.decimals)
+                  ).toString(),
+                  proportion.value,
+                  proportion.decimals,
+                  proportion.decimals
+                );
 
-          setTokenValues([`${value}`, computedValue]);
+          setTokenValues([
+            ethers.utils.parseUnits(value).toString(),
+            computedValue,
+          ]);
 
           break;
         }
         case 'theSecond': {
           const computedValue =
-            proportion === 'any' ? tokenValues[0] : `${value * proportion}`;
+            proportion.value === 'any'
+              ? tokenValues[0]
+              : mulDecimals(
+                  ethers.BigNumber.from(
+                    ethers.utils.parseUnits(`${value}`, proportion.decimals)
+                  ).toString(),
+                  proportion.value,
+                  proportion.decimals,
+                  proportion.decimals
+                );
 
-          setTokenValues([computedValue, `${value}`]);
+          setTokenValues([
+            computedValue,
+            ethers.utils.parseUnits(`${value}`).toString(),
+          ]);
 
           break;
         }
@@ -164,12 +220,11 @@ const Pools: FC<Props> = ({ userAddress, provider, signer }) => {
     const { theFirstItem, theSecondItem } = submission;
     const tokenIn = tokens.find((token) => token.name === theFirstItem);
     const tokenOut = tokens.find((token) => token.name === theSecondItem);
-
     const tokenInAddress = tokenIn?.address;
-    const tokenInValue = Number(submission.theFirstItemValue);
+    const tokenInValue = submission.theFirstItemValue;
     const tokenInDecimals = tokenIn?.decimals;
     const tokenOutAddress = tokenOut?.address;
-    const tokenOutValue = Number(submission.theSecondItemValue);
+    const tokenOutValue = submission.theSecondItemValue;
     const tokenOutDecimals = tokenOut?.decimals;
 
     const areOptionsValid =
@@ -202,7 +257,7 @@ const Pools: FC<Props> = ({ userAddress, provider, signer }) => {
     case REQUEST_STATUS.fulfilled: {
       let hint;
 
-      switch (proportion) {
+      switch (proportion.value) {
         case 'any': {
           hint = 'пропорция любая';
 
@@ -214,7 +269,7 @@ const Pools: FC<Props> = ({ userAddress, provider, signer }) => {
           break;
         }
         default: {
-          hint = `пропорция: ${proportion}`;
+          hint = `пропорция: ${ethers.utils.formatEther(proportion.value)}`;
 
           break;
         }
@@ -235,9 +290,19 @@ const Pools: FC<Props> = ({ userAddress, provider, signer }) => {
           }}
           items={tokens}
           itemText={'токен'}
-          values={tokenValues}
+          values={
+            tokenValues.map((val) =>
+              val === ''
+                ? val
+                : ethers.utils.formatUnits(ethers.BigNumber.from(val))
+            ) as [string, string]
+          }
           onValueChange={onValueChange}
-          max={tokensMax}
+          max={
+            tokensMax.map((max) =>
+              ethers.utils.formatUnits(ethers.BigNumber.from(max))
+            ) as [string, string]
+          }
           isMaxSync={!isPairBalanceZero}
           submitValue={submitValue}
           isSubmitDisabled={isSubmitDisabled}

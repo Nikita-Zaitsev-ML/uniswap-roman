@@ -12,17 +12,14 @@ type Options = {
 
 const removeLiquidity = createAsyncThunk(
   'Pools/removeLiquidity',
-  async ({
-    pair: { tokens, userBalance, decimals },
-    signer,
-  }: Options): Promise<void> => {
+  async ({ pair: { tokens, userBalance }, signer }: Options): Promise<void> => {
     const router = await fetchWriteToRouter({
       contractParameters: { signer },
       methods: {
         removeLiquidity: [
           tokens[0].address,
           tokens[1].address,
-          ethers.utils.parseUnits(`${userBalance}`, decimals),
+          ethers.BigNumber.from(userBalance),
         ],
       },
     });

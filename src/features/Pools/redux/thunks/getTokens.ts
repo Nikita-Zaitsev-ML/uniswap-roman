@@ -42,7 +42,7 @@ const getTokens = createAsyncThunk(
         address,
         name,
         decimals,
-        userBalance: Number(ethers.utils.formatUnits(balanceOf || 0, decimals)),
+        userBalance: balanceOf?.toString(),
       };
     });
   }

@@ -1,3 +1,4 @@
+import { ethers } from 'ethers';
 import { FC } from 'react';
 import NumberFormat, { NumberFormatValues } from 'react-number-format';
 
@@ -7,7 +8,7 @@ type Props = Omit<
   Parameters<typeof TextField>['0'],
   'ref' | 'value' | 'defaultValue'
 > & {
-  max?: number;
+  max?: string;
   onValueChange?: ConstructorParameters<
     typeof NumberFormat
   >['0']['onValueChange'];
@@ -23,7 +24,10 @@ const MaskedDecimalField: FC<Props> = ({
       return true;
     }
 
-    return max !== undefined && floatValue <= max;
+    return (
+      max !== undefined &&
+      ethers.utils.parseUnits(`${floatValue}`).lte(ethers.utils.parseUnits(max))
+    );
   };
 
   return (

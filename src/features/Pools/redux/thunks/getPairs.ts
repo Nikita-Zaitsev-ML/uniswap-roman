@@ -4,6 +4,7 @@ import { ethers } from 'ethers';
 import { fetchReadFromERC20 } from 'src/shared/api/blockchain/rinkeby/fetches/readFromERC20';
 import { fetchReadFromRegistry } from 'src/shared/api/blockchain/rinkeby/fetches/readFromRegistry';
 import { Address } from 'src/shared/api/blockchain/types';
+import { divDecimals } from 'src/shared/helpers/blockchain/numbers';
 
 import { Token, Pair } from '../../types';
 
@@ -76,22 +77,31 @@ const getPairs = createAsyncThunk(
         const isProportionUndefined =
           balanceOfToken0 === undefined ||
           balanceOfToken1 === undefined ||
-          balanceOfToken0.eq(0) ||
-          balanceOfToken1.eq(0);
+          balanceOfToken0.isZero() ||
+          balanceOfToken1.isZero();
+
+        if (!isProportionUndefined) {
+          console.log(
+            address,
+            ethers.utils.formatUnits(balanceOf),
+            ethers.utils.formatUnits(balanceOfToken0.toString()),
+            ethers.utils.formatUnits(balanceOfToken1.toString())
+          );
+        }
 
         const proportion = isProportionUndefined
           ? 'any'
-          : `${
-              Number(ethers.utils.formatUnits(balanceOfToken0, decimals)) /
-              Number(ethers.utils.formatUnits(balanceOfToken1, decimals))
-            }`;
+          : divDecimals(
+              balanceOfToken0.toString(),
+              balanceOfToken1.toString(),
+              token0.decimals,
+              token1.decimals
+            ).toString();
 
         return {
           address,
           tokens: [token0, token1],
-          userBalance: Number(
-            ethers.utils.formatUnits(balanceOf || 0, decimals)
-          ),
+          userBalance: balanceOf?.toString(),
           decimals,
           proportion,
         };

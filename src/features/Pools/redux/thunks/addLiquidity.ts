@@ -8,10 +8,10 @@ import { fetchWriteToERC20 } from 'src/shared/api/blockchain/rinkeby/fetches/wri
 
 type Options = {
   tokenInAddress: string;
-  tokenInValue: number;
+  tokenInValue: string;
   tokenInDecimals: number;
   tokenOutAddress: string;
-  tokenOutValue: number;
+  tokenOutValue: string;
   tokenOutDecimals: number;
   provider: ethers.providers.Web3Provider;
   signer: ethers.Signer;
@@ -77,7 +77,7 @@ const addLiquidity = createAsyncThunk(
       methods: {
         approve: [
           registryInfo.getPair,
-          ethers.utils.parseUnits(`${tokenInValue}`, tokenInDecimals),
+          ethers.utils.parseUnits(tokenInValue, tokenInDecimals),
         ],
       },
     });
@@ -91,7 +91,7 @@ const addLiquidity = createAsyncThunk(
       methods: {
         approve: [
           registryInfo.getPair,
-          ethers.utils.parseUnits(`${tokenOutValue}`, tokenOutDecimals),
+          ethers.utils.parseUnits(tokenOutValue, tokenOutDecimals),
         ],
       },
     });
@@ -109,8 +109,8 @@ const addLiquidity = createAsyncThunk(
         addLiquidity: [
           tokenInAddress,
           tokenOutAddress,
-          ethers.utils.parseUnits(`${tokenInValue}`, tokenInDecimals),
-          ethers.utils.parseUnits(`${tokenOutValue}`, tokenOutDecimals),
+          ethers.utils.parseUnits(tokenInValue, tokenInDecimals),
+          ethers.utils.parseUnits(tokenOutValue, tokenOutDecimals),
         ],
       },
     });

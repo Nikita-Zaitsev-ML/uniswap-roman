@@ -27,7 +27,9 @@ const ViewPairs: FC<Props> = ({ signer, switchBtn }) => {
     data: { pairs },
     error,
   } = useAppSelector(selectPools);
-  const pairsOfUser = pairs.filter((pair) => pair.userBalance > 0);
+  const pairsOfUser = pairs.filter(
+    (pair) => !ethers.BigNumber.from(pair.userBalance).isZero()
+  );
   const dispatch = useAppDispatch();
 
   const makeHandleDeleteBtnClick = (pair: Pair) => () => {
@@ -81,7 +83,10 @@ const ViewPairs: FC<Props> = ({ signer, switchBtn }) => {
                             .join(' + ')}:`}
                         </Typography>
                         <Typography css={styles.pairBalance()} variant="body2">
-                          {pair.userBalance}
+                          {ethers.utils.formatUnits(
+                            pair.userBalance,
+                            pair.decimals
+                          )}
                         </Typography>
                         <Button
                           css={styles.pairDeleteBtn()}

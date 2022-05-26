@@ -18,7 +18,7 @@ type Props = MaskedDecimalFieldProps & {
   options: Item[];
   optionText: string;
   value?: string;
-  max?: number;
+  max?: string;
   handleAutocompleteChange: (
     event: SyntheticEvent<Element, Event>,
     value: Item | null,
@@ -92,7 +92,7 @@ const FieldWithAutocomplete: FC<Props> = ({
               </Button>
               <Typography
                 css={styles.balanceValue()}
-                title={`${max}`}
+                title={max}
                 variant="caption"
                 noWrap
               >

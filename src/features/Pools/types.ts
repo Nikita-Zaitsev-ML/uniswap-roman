@@ -13,7 +13,7 @@ type State = {
 type Token = {
   address: Address;
   name: string;
-  userBalance: number;
+  userBalance: string;
   decimals: number;
 };
 
@@ -26,7 +26,7 @@ type SubmitButtonValue =
 
 type Pair = Omit<Token, 'name'> & {
   tokens: Token[];
-  proportion: number | 'any';
+  proportion: string | 'any';
 };
 
 export type { State, Token, ViewType, SubmitButtonValue, Pair };

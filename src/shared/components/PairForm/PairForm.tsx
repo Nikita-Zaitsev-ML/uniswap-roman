@@ -23,7 +23,7 @@ type Props = {
   items: Item[];
   itemText: string;
   values?: [string, string];
-  max: [number, number];
+  max: [string, string];
   isMaxSync?: boolean;
   submitValue: string;
   isSubmitDisabled?: boolean;
@@ -34,7 +34,7 @@ type Props = {
   onValueChange?: (
     event:
       | {
-          value: number | undefined;
+          value: string | undefined;
           field: 'theFirst' | 'theSecond';
         }
       | undefined
@@ -84,8 +84,8 @@ const PairForm: FC<Props> = ({
 
   useEffect(() => {
     if (values !== undefined) {
-      setValue('theFirstItemValue', `${values[0]}`);
-      setValue('theSecondItemValue', `${values[1]}`);
+      setValue('theFirstItemValue', values[0]);
+      setValue('theSecondItemValue', values[1]);
       setShouldRerender(true);
     }
   }, [setValue, values]);
@@ -115,10 +115,10 @@ const PairForm: FC<Props> = ({
     };
 
   const handleTheFirstItemMaxClick = () => {
-    setValue('theFirstItemValue', `${theFirstItemMax}`);
+    setValue('theFirstItemValue', theFirstItemMax);
 
     if (isMaxSync) {
-      setValue('theSecondItemValue', `${theSecondItemMax}`);
+      setValue('theSecondItemValue', theSecondItemMax);
     }
 
     setShouldRerender(true);
@@ -143,10 +143,10 @@ const PairForm: FC<Props> = ({
     };
 
   const handleTheSecondItemMaxClick = () => {
-    setValue('theSecondItemValue', `${theSecondItemMax}`);
+    setValue('theSecondItemValue', theSecondItemMax);
 
     if (isMaxSync) {
-      setValue('theFirstItemValue', `${theFirstItemMax}`);
+      setValue('theFirstItemValue', theFirstItemMax);
     }
 
     setShouldRerender(true);
@@ -155,8 +155,9 @@ const PairForm: FC<Props> = ({
   const makeHandleValueChange = (field: 'theFirst' | 'theSecond') => {
     const handleValueChange: Parameters<
       typeof FieldWithAutocomplete
-    >['0']['onValueChange'] = ({ floatValue }) => {
-      onValueChange?.({ value: floatValue, field });
+    >['0']['onValueChange'] = ({ value, formattedValue }) => {
+      console.log(value, formattedValue);
+      onValueChange?.({ value, field });
     };
 
     return handleValueChange;
