@@ -22,6 +22,7 @@ import { factoryABI, routerABI, registryABI, feeABI } from '../constants';
  *     { address: '0x868e178aC30E926999F0DFEC18F485826427aA2e' },
  *   ],
  * };
+ * pair: 0xa79daf57168addbd7437A372D3abe382277e533a
  */
 
 const contracts = {

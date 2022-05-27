@@ -1,5 +1,4 @@
 import { FC } from 'react';
-import { useTheme } from '@mui/material';
 
 import { Props as LinkProps } from '../../Link/Link';
 import { Breadcrumbs } from '../../Breadcrumbs/Breadcrumbs';
@@ -11,8 +10,7 @@ type Props = {
 };
 
 const Navigation: FC<Props> = ({ items }) => {
-  const theme = useTheme();
-  const styles = createStyles({}, theme);
+  const styles = createStyles();
 
   const breadcrumbsItems: LinkProps[] = items.map((item) => {
     const { isCurrentPage, ...theRest } = item;

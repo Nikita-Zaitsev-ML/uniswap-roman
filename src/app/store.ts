@@ -6,14 +6,14 @@ import {
 } from '@reduxjs/toolkit';
 import { createWrapper } from 'next-redux-wrapper';
 
-import { reducer as PoolsReducer } from 'src/features/Pools';
+import { reducer as ContainerReducer } from 'src/features/Container';
 import { themeReducer } from 'src/services/theme';
 
 const makeStore = () =>
   configureStore({
     reducer: {
       services: combineReducers({ theme: themeReducer }),
-      features: combineReducers({ Pools: PoolsReducer }),
+      features: combineReducers({ Container: ContainerReducer }),
     },
     devTools: true,
   });

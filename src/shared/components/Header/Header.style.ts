@@ -17,7 +17,17 @@ const createStyles = (props: {}, theme: Theme) => ({
   `,
   navigation: () =>
     css`
-      flex: 0 1 fit-content;
+      position: fixed;
+      width: fit-content;
+      left: 0;
+      right: 0;
+      margin: auto;
+      bottom: 5%;
+
+      @media print, screen and (min-width: ${theme.breakpoints.values.md}px) {
+        position: static;
+        flex: 0 1 fit-content;
+      }
     `,
   settings: () => css`
     flex: 0 1 33.33%;

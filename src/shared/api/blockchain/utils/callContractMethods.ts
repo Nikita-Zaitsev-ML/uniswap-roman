@@ -28,7 +28,11 @@ const callContractMethods = async <
     }, {});
 
     return result;
-  } catch (error) {
+  } catch (error: any) {
+    if (typeof error === 'object' && error !== null && 'message' in error) {
+      return new Error(error.message);
+    }
+
     return <globalThis.Error>error;
   }
 };

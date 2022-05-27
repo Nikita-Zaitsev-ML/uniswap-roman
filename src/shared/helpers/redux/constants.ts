@@ -1,6 +1,6 @@
 import { RequestStatus } from './types';
 
-const REQUEST_STATUS: Record<RequestStatus, string> = {
+const REQUEST_STATUS: Record<RequestStatus, RequestStatus> = {
   idle: 'idle',
   pending: 'pending',
   fulfilled: 'fulfilled',

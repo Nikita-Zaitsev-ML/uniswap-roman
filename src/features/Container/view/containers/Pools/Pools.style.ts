@@ -2,11 +2,10 @@ import { css } from '@mui/material';
 
 const createStyles = () => ({
   root: () => css``,
-  breadcrumbs: () => css``,
-  menuButton: () => {
-    return css``;
-  },
-  menu: () => css``,
+  hint: () => css`
+    display: inline-block;
+    word-break: break-word;
+  `,
 });
 
 export { createStyles };

@@ -1,6 +1,6 @@
 import { DefaultLayout } from 'src/modules/shared/pageTemplates';
 import { Head, Header } from 'src/modules/shared/components';
-import { Swap } from 'src/features/Swap';
+import { Container as ContainerFeature } from 'src/features/Container/Container';
 import type { NextPageWithLayout } from 'src/shared/types';
 import { Box, Container } from 'src/shared/components';
 
@@ -15,7 +15,6 @@ const Home: NextPageWithLayout = () => {
   return (
     <>
       <Head title="Главная страница" keywords="" description="" />
-
       <DefaultLayout
         header={<Header user={user} onAuth={handleHeaderOnAuth} />}
       >
@@ -23,9 +22,11 @@ const Home: NextPageWithLayout = () => {
           <Box css={styles.root()} component="main">
             <Box css={styles.grid()}>
               {error === '' ? (
-                <Swap
+                <ContainerFeature
+                  userAddress={user?.address || ''}
                   provider={connection && connection.provider}
                   signer={connection && connection.signer}
+                  view={'Swap'}
                 />
               ) : (
                 error
