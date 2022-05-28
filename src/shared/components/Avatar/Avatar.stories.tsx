@@ -3,7 +3,7 @@ import { ComponentMeta, ComponentStory } from '@storybook/react';
 import { Container, Box } from '../index';
 import { Avatar } from './Avatar';
 
-const Meta = {
+const Meta: ComponentMeta<typeof Avatar> = {
   title: 'Components/Avatar',
   component: Avatar,
   decorators: [
@@ -15,7 +15,7 @@ const Meta = {
       </Container>
     ),
   ],
-} as ComponentMeta<typeof Avatar>;
+};
 
 const Template: ComponentStory<typeof Avatar> = (args) => <Avatar {...args} />;
 

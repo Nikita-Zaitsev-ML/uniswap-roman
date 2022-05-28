@@ -1,5 +1,7 @@
 import { ethers } from 'ethers';
 
+import { isErrorLike } from 'src/shared/types/guards';
+
 const callContractMethods = async <
   QueryParameters extends {
     contractParameters: ConstructorParameters<typeof ethers.Contract>;
@@ -28,8 +30,9 @@ const callContractMethods = async <
     }, {});
 
     return result;
-  } catch (error: any) {
-    if (typeof error === 'object' && error !== null && 'message' in error) {
+  } catch (error) {
+    console.log(error, isErrorLike(error));
+    if (isErrorLike(error)) {
       return new Error(error.message);
     }
 

@@ -1,6 +1,6 @@
 import { DefaultLayout } from 'src/modules/shared/pageTemplates';
 import { Head, Header } from 'src/modules/shared/components';
-import { Container as ContainerFeature } from 'src/features/Container/Container';
+import { Provider as ProviderFeature } from 'src/features/Provider/Provider';
 import type { NextPageWithLayout } from 'src/shared/types';
 import { Box, Container } from 'src/shared/components';
 
@@ -22,7 +22,7 @@ const Home: NextPageWithLayout = () => {
           <Box css={styles.root()} component="main">
             <Box css={styles.grid()}>
               {error === '' ? (
-                <ContainerFeature
+                <ProviderFeature
                   userAddress={user?.address || ''}
                   provider={connection && connection.provider}
                   signer={connection && connection.signer}

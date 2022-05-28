@@ -1,4 +1,5 @@
-import { divDecimals } from './divDecimals';
-import { mulDecimals } from './mulDecimals';
+import { BigNumber } from './BigNumber';
+import { formatUnits } from './formatUnits';
+import { parseUnits } from './parseUnits';
 
-export { divDecimals, mulDecimals };
+export { BigNumber, formatUnits, parseUnits };

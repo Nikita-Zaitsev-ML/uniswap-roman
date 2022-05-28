@@ -14,11 +14,19 @@ const connectMetaMask = async () => {
   }
 
   try {
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const provider = new ethers.providers.Web3Provider(window.ethereum, 'any');
 
     await provider.send('eth_requestAccounts', []);
 
     const signer = provider.getSigner();
+
+    provider.on('network', (newNetwork, oldNetwork) => {
+      const isNetworkChanged = oldNetwork !== null;
+
+      if (isNetworkChanged) {
+        window.location.reload();
+      }
+    });
 
     return { provider, signer };
   } catch (error) {
