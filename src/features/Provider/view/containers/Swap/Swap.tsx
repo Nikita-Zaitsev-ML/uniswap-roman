@@ -6,7 +6,7 @@ import { useAppDispatch, useAppSelector } from 'src/app/hooks';
 import { ArrowDownward, Box, Typography } from 'src/shared/components';
 import { BigNumber, parseUnits } from 'src/shared/helpers/blockchain/numbers';
 
-import { selectProvider, swapIn } from '../../../redux/slice';
+import { selectProvider, setFeeAmount, swapIn } from '../../../redux/slice';
 import { PairForm } from '../../components/PairForm/PairForm';
 import { SubmitButtonValue } from './types';
 import { createStyles } from './Swap.style';
@@ -23,7 +23,12 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
   const theme = useTheme();
   const styles = createStyles(theme);
 
-  const [tokenValues, setTokenValues] = useState<string[]>(['', '']);
+  const [tokenValues, setTokenValues] = useState<
+    { amount: string; decimals: number }[]
+  >([
+    { amount: '', decimals: 0 },
+    { amount: '', decimals: 0 },
+  ]);
   const [proportion, setProportion] = useState<{
     value: string | 'any' | '';
     decimals: number;
@@ -98,19 +103,27 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
         return token0MaxToSet;
       });
 
+      const tokenValuesToSet = tokenValues.map((value, index) => {
+        if (index === 1) {
+          return { ...value, decimals: token1.decimals };
+        }
+
+        return { ...value, decimals: token0.decimals };
+      });
+
       const shouldReverse =
         token0.address === tokenOutData?.address &&
         token1.address === tokenInData?.address;
 
       if (shouldReverse) {
+        setTokenValues(tokenValues.reverse());
         setProportion({
           value: new BigNumber('1').div(existedPair.proportion).toString(),
           decimals: existedPair.decimals,
         });
-
-        setTokenValues(tokenValues.reverse());
         setTokensMax(tokensMaxToSet.reverse());
       } else {
+        setTokenValues(tokenValuesToSet);
         setProportion({
           value: existedPair.proportion,
           decimals: existedPair.decimals,
@@ -122,8 +135,12 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
         value: '',
         decimals: 0,
       });
-      setTokenValues(['', '']);
+      setTokenValues([
+        { amount: '', decimals: 0 },
+        { amount: '', decimals: 0 },
+      ]);
       setTokensMax(['0', '0']);
+      dispatch(setFeeAmount('0'));
     }
   };
 
@@ -134,34 +151,52 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
       const { field, value } = event;
 
       if (value === undefined || value === '') {
-        setTokenValues(['', '']);
+        setTokenValues([
+          { amount: '', decimals: 0 },
+          { amount: '', decimals: 0 },
+        ]);
 
         return;
       }
 
+      const [tokenIn, tokenOut] = tokenValues;
+      let computedValue;
+
       switch (field) {
         case 'theFirst': {
-          const computedValue =
+          computedValue =
             proportion.value === 'any'
-              ? tokenValues[1]
+              ? tokenValues[1].amount
               : new BigNumber(value).div(proportion.value).toString();
 
-          setTokenValues([value, computedValue]);
+          setTokenValues([
+            { ...tokenIn, amount: value },
+            { ...tokenOut, amount: computedValue },
+          ]);
 
           break;
         }
         case 'theSecond': {
-          const computedValue =
+          computedValue =
             proportion.value === 'any'
-              ? tokenValues[0]
+              ? tokenValues[0].amount
               : new BigNumber(value).times(proportion.value).toString();
 
-          setTokenValues([computedValue, value]);
+          setTokenValues([
+            { ...tokenIn, amount: computedValue },
+            { ...tokenOut, amount: value },
+          ]);
 
           break;
         }
         // no default
       }
+
+      const computedValueFeeAmount = new BigNumber(computedValue)
+        .times(fee.value)
+        .toString();
+
+      dispatch(setFeeAmount(computedValueFeeAmount));
     }
   };
 
@@ -186,14 +221,12 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
       provider !== null &&
       signer !== null;
 
-    console.log(fee);
-
     if (areOptionsValid) {
-      const tokenOutFeeAmount = new BigNumber(tokenOutValue).times(fee.value);
       const tokenOutValueMinusFee = new BigNumber(tokenOutValue)
-        .minus(tokenOutFeeAmount)
+        .minus(fee.amount)
         .toString();
 
+      console.log(fee);
       console.log(tokenOutValue.toString(), tokenOutValueMinusFee.toString());
 
       await dispatch(
@@ -209,11 +242,21 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
     }
   };
 
-  const commissionHint =
-    fee.value === ''
-      ? `комиссия: ${new BigNumber(fee.value).toFixed(fee.decimals)}%`
-      : '';
+  const [, tokenOut] = tokenValues;
+  const percentDivider = 100;
+  const percentZeros = 2;
+  const commissionPercentHint =
+    fee.value === '0'
+      ? ''
+      : `комиссия платформы: ${new BigNumber(fee.value)
+          .div(percentDivider)
+          .toFixed(fee.decimals + percentZeros)}%`;
+  let commissionAmountHint = '';
   let proportionHint = '';
+
+  commissionAmountHint = `вы получите меньше на: ${new BigNumber(
+    fee.amount
+  ).toFixed(tokenOut.decimals)}`;
 
   switch (proportion.value) {
     case 'any': {
@@ -241,15 +284,22 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
       hint={
         <Box css={styles.hint()}>
           {proportionHint && (
-            <Typography css={styles.proportion()}>{proportionHint}</Typography>
+            <Typography css={styles.proportion()} variant="caption">
+              {proportionHint}
+            </Typography>
           )}
-          <Typography css={styles.commission()}>{commissionHint}</Typography>
+          <Typography css={styles.commission()} variant="caption">
+            {commissionPercentHint}
+          </Typography>
+          <Typography css={styles.commission()} variant="caption">
+            {commissionAmountHint}
+          </Typography>
         </Box>
       }
       actionIcon={<ArrowDownward />}
       items={tokens}
       itemText={'токен'}
-      values={tokenValues}
+      values={tokenValues.map(({ amount }) => amount)}
       onValueChange={onValueChange}
       max={tokensMax}
       isMaxSync

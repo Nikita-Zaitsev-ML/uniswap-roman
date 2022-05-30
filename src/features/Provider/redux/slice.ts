@@ -7,7 +7,11 @@ import { selectProvider } from './selectors';
 const slice = createSlice({
   name: 'Provider',
   initialState,
-  reducers: {},
+  reducers: {
+    setFeeAmount(state, { payload }) {
+      state.data.fee.amount = payload;
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(getData.pending, (state) => {
@@ -60,11 +64,14 @@ const slice = createSlice({
   },
 });
 
+const { setFeeAmount } = slice.actions;
+
 const { reducer } = slice;
 
 export {
   reducer,
   selectProvider,
+  setFeeAmount,
   getData,
   addLiquidity,
   removeLiquidity,

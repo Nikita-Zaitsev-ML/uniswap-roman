@@ -10,10 +10,12 @@ const createStyles = (theme: Theme) => ({
   `,
   proportion: () =>
     css`
+      color: ${theme.palette.grey['400']};
       word-break: break-word;
     `,
   commission: () =>
     css`
+      color: ${theme.palette.grey['400']};
       word-break: break-word;
     `,
 });

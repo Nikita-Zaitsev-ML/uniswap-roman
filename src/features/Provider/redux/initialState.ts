@@ -5,7 +5,7 @@ const initialState: State = {
   data: {
     tokens: [],
     pairs: [],
-    fee: { value: '0', decimals: 0 },
+    fee: { value: '0', decimals: 0, amount: '0' },
   },
   shouldUpdateData: true,
   error: null,
