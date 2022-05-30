@@ -8,6 +8,7 @@ import { BigNumber, parseUnits } from 'src/shared/helpers/blockchain/numbers';
 
 import { selectProvider, setFeeAmount, swapIn } from '../../../redux/slice';
 import { PairForm } from '../../components/PairForm/PairForm';
+import { calculateSwap } from '../../../utils';
 import { SubmitButtonValue } from './types';
 import { createStyles } from './Swap.style';
 
@@ -206,35 +207,36 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
     const { theFirstItem, theSecondItem } = submission;
     const tokenIn = tokens.find((token) => token.name === theFirstItem);
     const tokenOut = tokens.find((token) => token.name === theSecondItem);
-    const tokenInAddress = tokenIn?.address;
     const tokenInValue = submission.theFirstItemValue;
-    const tokenInDecimals = tokenIn?.decimals;
-    const tokenOutAddress = tokenOut?.address;
-    const tokenOutValue = submission.theSecondItemValue;
-    const tokenOutDecimals = tokenOut?.decimals;
 
     const areOptionsValid =
-      tokenInAddress !== undefined &&
-      tokenInDecimals !== undefined &&
-      tokenOutAddress !== undefined &&
-      tokenOutDecimals !== undefined &&
+      tokenIn?.address !== undefined &&
+      tokenIn?.decimals !== undefined &&
+      tokenIn.userBalance !== undefined &&
+      tokenOut?.address !== undefined &&
+      tokenOut?.decimals !== undefined &&
+      tokenOut.userBalance !== undefined &&
       provider !== null &&
       signer !== null;
 
     if (areOptionsValid) {
-      const tokenOutValueMinusFee = new BigNumber(tokenOutValue)
-        .minus(fee.amount)
-        .toString();
-
-      console.log(fee);
-      console.log(tokenOutValue.toString(), tokenOutValueMinusFee.toString());
+      const tokenOutMin = calculateSwap({
+        amountIn: parseUnits(tokenInValue, tokenIn.decimals),
+        balanceIn: parseUnits(tokenIn.userBalance, tokenIn.decimals),
+        balanceOut: parseUnits(tokenOut.userBalance, tokenOut.decimals),
+        fee: {
+          amount: parseUnits(fee.value, fee.decimals),
+          decimals: fee.decimals,
+        },
+        decimals: Math.max(tokenIn.decimals, tokenOut.decimals),
+      });
 
       await dispatch(
         swapIn({
-          tokenInAddress,
-          tokenInValue: parseUnits(tokenInValue, tokenInDecimals),
-          tokenOutAddress,
-          tokenOutMin: parseUnits(tokenOutValueMinusFee, tokenOutDecimals),
+          tokenInAddress: tokenIn.address,
+          tokenInValue: parseUnits(tokenInValue, tokenIn.decimals),
+          tokenOutAddress: tokenOut.address,
+          tokenOutMin: parseUnits(tokenOutMin, tokenOut.decimals),
           provider,
           signer,
         })
@@ -243,19 +245,17 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
   };
 
   const [, tokenOut] = tokenValues;
-  const percentDivider = 100;
-  const percentZeros = 2;
   const commissionPercentHint =
     fee.value === '0'
       ? ''
-      : `комиссия платформы: ${new BigNumber(fee.value)
-          .div(percentDivider)
-          .toFixed(fee.decimals + percentZeros)}%`;
+      : `комиссия платформы: ${new BigNumber(fee.value).toFixed(
+          fee.decimals
+        )}%`;
   let commissionAmountHint = '';
   let proportionHint = '';
 
   commissionAmountHint = `вы получите меньше на: ${new BigNumber(
-    fee.amount
+    fee.value
   ).toFixed(tokenOut.decimals)}`;
 
   switch (proportion.value) {

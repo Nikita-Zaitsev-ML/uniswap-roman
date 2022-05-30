@@ -27,7 +27,6 @@ type Pair = Omit<Token, 'name'> & {
 type Fee = {
   value: string;
   decimals: number;
-  amount: string;
 };
 
 export type { State, Token, Pair, Fee };
