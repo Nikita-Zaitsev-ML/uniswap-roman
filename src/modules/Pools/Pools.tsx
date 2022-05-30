@@ -10,14 +10,12 @@ import { createStyles } from './Pools.style';
 const Pools: NextPageWithLayout = () => {
   const styles = createStyles();
 
-  const { connection, user, error, handleHeaderOnAuth } = useAuth();
+  const { connection, user, error, onAuth } = useAuth();
 
   return (
     <>
       <Head title="Пулы" keywords="" description="" />
-      <DefaultLayout
-        header={<Header user={user} onAuth={handleHeaderOnAuth} />}
-      >
+      <DefaultLayout header={<Header user={user} onAuth={onAuth} />}>
         <Container>
           <Box css={styles.root()} component="main">
             <Box css={styles.grid()}>

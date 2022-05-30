@@ -41,7 +41,7 @@ const useAuth = () => {
     })();
   }, [connection]);
 
-  const handleHeaderOnAuth = async () => {
+  const onAuth = async () => {
     if (connection !== null) {
       return;
     }
@@ -57,7 +57,7 @@ const useAuth = () => {
     }
   };
 
-  return { connection, user, error, handleHeaderOnAuth };
+  return { connection, user, error, onAuth };
 };
 
 export { useAuth };

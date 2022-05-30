@@ -10,14 +10,12 @@ import { createStyles } from './Home.style';
 const Home: NextPageWithLayout = () => {
   const styles = createStyles();
 
-  const { connection, user, error, handleHeaderOnAuth } = useAuth();
+  const { connection, user, error, onAuth } = useAuth();
 
   return (
     <>
       <Head title="Главная страница" keywords="" description="" />
-      <DefaultLayout
-        header={<Header user={user} onAuth={handleHeaderOnAuth} />}
-      >
+      <DefaultLayout header={<Header user={user} onAuth={onAuth} />}>
         <Container>
           <Box css={styles.root()} component="main">
             <Box css={styles.grid()}>

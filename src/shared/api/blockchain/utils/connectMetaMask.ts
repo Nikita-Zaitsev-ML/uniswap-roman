@@ -10,6 +10,8 @@ declare global {
 
 const connectMetaMask = async () => {
   if (window?.ethereum === undefined) {
+    window.alert('Пожалуйста, установите MetaMask');
+
     return new Error('ethereum is undefined');
   }
 
