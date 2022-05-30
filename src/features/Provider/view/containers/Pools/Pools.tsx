@@ -15,9 +15,10 @@ type Props = {
   userAddress: string | '';
   provider: ethers.providers.Web3Provider | null;
   signer: ethers.providers.JsonRpcSigner | null;
+  disabled?: boolean;
 };
 
-const Pools: FC<Props> = ({ userAddress, provider, signer }) => {
+const Pools: FC<Props> = ({ userAddress, provider, signer, disabled }) => {
   const isAuth = provider !== null && signer !== null;
 
   const styles = createStyles();
@@ -273,6 +274,7 @@ const Pools: FC<Props> = ({ userAddress, provider, signer }) => {
       max={tokensMax}
       isMaxSync={!(proportion.value === 'any' || proportion.value === '')}
       submitValue={submitValue}
+      disabled={disabled}
       isSubmitDisabled={isSubmitDisabled}
       onPairSet={handlePairFormPairSet}
       onSubmit={onSubmit}

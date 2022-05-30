@@ -30,6 +30,7 @@ type Props = {
   max: string[];
   isMaxSync?: boolean;
   submitValue: string;
+  disabled?: boolean;
   isSubmitDisabled?: boolean;
   onPairSet?: (data: {
     pair: [{ name: string; value: string }, { name: string; value: string }];
@@ -57,7 +58,8 @@ const PairForm: FC<Props> = ({
   max,
   isMaxSync = false,
   submitValue,
-  isSubmitDisabled = false,
+  disabled = false,
+  isSubmitDisabled = disabled,
   switchBtn = undefined,
   onPairSet,
   onValueChange,
@@ -205,6 +207,7 @@ const PairForm: FC<Props> = ({
                 }
                 variant="filled"
                 fullWidth
+                disabled={disabled}
                 handleAutocompleteChange={handleTheFirstItemAutocompleteChange}
                 onValueChange={makeHandleValueChange('theFirst')}
                 handleMaxClick={handleTheFirstItemMaxClick}
@@ -230,6 +233,7 @@ const PairForm: FC<Props> = ({
                 }
                 variant="filled"
                 fullWidth
+                disabled={disabled}
                 handleAutocompleteChange={handleTheSecondItemAutocompleteChange}
                 onValueChange={makeHandleValueChange('theSecond')}
                 handleMaxClick={handleTheSecondItemMaxClick}
@@ -238,7 +242,7 @@ const PairForm: FC<Props> = ({
               <Button
                 type="submit"
                 variant="contained"
-                disabled={isSubmitDisabled}
+                disabled={isSubmitDisabled || disabled}
                 fullWidth
               >
                 {submitValue}

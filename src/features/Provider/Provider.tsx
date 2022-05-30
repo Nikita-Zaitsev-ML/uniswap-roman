@@ -34,10 +34,52 @@ const Provider: FC<Props> = ({ userAddress, provider, signer, view }) => {
 
   switch (status) {
     case REQUEST_STATUS.idle: {
-      return null;
+      switch (view) {
+        case 'Pools': {
+          return (
+            <Pools
+              userAddress={userAddress}
+              provider={provider}
+              signer={signer}
+              disabled
+            />
+          );
+        }
+        case 'Swap': {
+          return <Swap provider={provider} signer={signer} disabled />;
+        }
+        default: {
+          return null;
+        }
+      }
     }
     case REQUEST_STATUS.pending: {
-      return <LinearProgress position="fixed-top" />;
+      switch (view) {
+        case 'Pools': {
+          return (
+            <>
+              <LinearProgress position="fixed-top" />
+              <Pools
+                userAddress={userAddress}
+                provider={provider}
+                signer={signer}
+                disabled
+              />
+            </>
+          );
+        }
+        case 'Swap': {
+          return (
+            <>
+              <LinearProgress position="fixed-top" />
+              <Swap provider={provider} signer={signer} disabled />
+            </>
+          );
+        }
+        default: {
+          return null;
+        }
+      }
     }
     case REQUEST_STATUS.fulfilled: {
       switch (view) {

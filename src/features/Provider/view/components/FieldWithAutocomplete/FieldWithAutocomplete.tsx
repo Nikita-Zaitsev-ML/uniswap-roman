@@ -35,6 +35,7 @@ const FieldWithAutocomplete: FC<Props> = ({
   options,
   optionText,
   max,
+  disabled,
   handleAutocompleteChange,
   handleMaxClick,
   ...maskedDecimalFieldProps
@@ -45,6 +46,7 @@ const FieldWithAutocomplete: FC<Props> = ({
   return (
     <MaskedDecimalField
       max={max}
+      disabled={disabled}
       {...maskedDecimalFieldProps}
       InputProps={{
         disableUnderline: true,
@@ -83,6 +85,7 @@ const FieldWithAutocomplete: FC<Props> = ({
                 />
               )}
               fullWidth
+              disabled={disabled}
               onChange={handleAutocompleteChange}
             />
             <Box css={styles.balance()}>

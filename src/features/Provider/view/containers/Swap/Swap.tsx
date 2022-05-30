@@ -14,9 +14,10 @@ import { createStyles } from './Swap.style';
 type Props = {
   provider: ethers.providers.Web3Provider | null;
   signer: ethers.providers.JsonRpcSigner | null;
+  disabled?: boolean;
 };
 
-const Swap: FC<Props> = ({ provider, signer }) => {
+const Swap: FC<Props> = ({ provider, signer, disabled }) => {
   const isAuth = provider !== null && signer !== null;
 
   const theme = useTheme();
@@ -185,6 +186,8 @@ const Swap: FC<Props> = ({ provider, signer }) => {
       provider !== null &&
       signer !== null;
 
+    console.log(fee);
+
     if (areOptionsValid) {
       const tokenOutFeeAmount = new BigNumber(tokenOutValue).times(fee.value);
       const tokenOutValueMinusFee = new BigNumber(tokenOutValue)
@@ -251,7 +254,8 @@ const Swap: FC<Props> = ({ provider, signer }) => {
       max={tokensMax}
       isMaxSync
       submitValue={submitValue}
-      isSubmitDisabled={isSubmitDisabled}
+      disabled={disabled}
+      isSubmitDisabled={isSubmitDisabled || disabled}
       onPairSet={handlePairFormPairSet}
       onSubmit={onSubmit}
     />
