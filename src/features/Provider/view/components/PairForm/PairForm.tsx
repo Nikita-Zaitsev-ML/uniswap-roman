@@ -127,6 +127,11 @@ const PairForm: FC<Props> = ({
       setValue('theSecondItemValue', theSecondItemMax);
     }
 
+    onValueChange?.({
+      value: theFirstItemMax,
+      field: 'theFirst',
+    });
+
     setShouldRerender(true);
   };
 
@@ -154,6 +159,11 @@ const PairForm: FC<Props> = ({
     if (isMaxSync) {
       setValue('theFirstItemValue', theFirstItemMax);
     }
+
+    onValueChange?.({
+      value: theFirstItemMax,
+      field: 'theFirst',
+    });
 
     setShouldRerender(true);
   };
