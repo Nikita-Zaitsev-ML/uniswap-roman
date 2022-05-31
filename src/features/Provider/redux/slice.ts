@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { defaults } from 'lodash';
 
 import { initialState } from './initialState';
 import { getData, addLiquidity, removeLiquidity, swapIn } from './thunks';
@@ -8,8 +9,8 @@ const slice = createSlice({
   name: 'Provider',
   initialState,
   reducers: {
-    setFeeAmount(state, { payload }) {
-      state.data.fee.amount = payload;
+    setFeeValue(state, { payload }) {
+      state.data.fee.value = payload;
     },
   },
   extraReducers: (builder) => {
@@ -22,7 +23,7 @@ const slice = createSlice({
 
         state.status = 'fulfilled';
         state.shouldUpdateData = false;
-        state.data = payload;
+        state.data = defaults(payload, initialState.data);
       })
       .addCase(getData.rejected, (state, action) => {
         state.status = 'rejected';
@@ -64,14 +65,14 @@ const slice = createSlice({
   },
 });
 
-const { setFeeAmount } = slice.actions;
+const { setFeeValue } = slice.actions;
 
 const { reducer } = slice;
 
 export {
   reducer,
   selectProvider,
-  setFeeAmount,
+  setFeeValue,
   getData,
   addLiquidity,
   removeLiquidity,

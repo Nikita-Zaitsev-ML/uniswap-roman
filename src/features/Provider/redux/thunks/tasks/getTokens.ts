@@ -1,5 +1,4 @@
 import { ethers } from 'ethers';
-import { AsyncReturnType } from 'type-fest';
 
 import { fetchReadFromERC20 } from 'src/shared/api/blockchain/rinkeby/fetches/readFromERC20';
 import { contracts } from 'src/shared/api/blockchain/rinkeby/constants';
@@ -13,19 +12,12 @@ type Options = {
   provider: ethers.providers.Web3Provider;
 };
 
-type FetchedData = Exclude<
-  AsyncReturnType<typeof fetchReadFromERC20>,
-  globalThis.Error
-> & {
-  address: string;
-};
-
 const getTokens = async ({
   userAddress,
   provider,
 }: Options): Promise<Partial<Token>[] | Error> => {
   const result = await Promise.all(
-    contracts.tokens.map(async ({ address }): Promise<FetchedData | Error> => {
+    contracts.tokens.map(async ({ address }) => {
       const token = await fetchReadFromERC20({
         contractParameters: { address, provider },
         methods: { name: [], balanceOf: [userAddress], decimals: [] },

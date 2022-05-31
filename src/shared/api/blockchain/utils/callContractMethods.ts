@@ -31,7 +31,6 @@ const callContractMethods = async <
 
     return result;
   } catch (error) {
-    console.log(error, isErrorLike(error));
     if (isErrorLike(error)) {
       return new Error(error.message);
     }

@@ -15,7 +15,7 @@ type Props = Omit<
 };
 
 const MaskedDecimalField: FC<Props> = ({
-  max,
+  max = '0',
   onValueChange,
   ...textFieldProps
 }) => {
@@ -25,20 +25,22 @@ const MaskedDecimalField: FC<Props> = ({
     }
 
     const decimals = value.split('.')[1]?.length || 0;
+    const maxDecimals = max.split('.')[1]?.length;
 
-    return (
+    const isAllowed =
       max !== undefined &&
       value !== '.' &&
-      max.split('.')[1]?.length >= decimals &&
-      new BigNumber(value).lte(max)
-    );
+      maxDecimals >= decimals &&
+      new BigNumber(value).lte(max);
+
+    return isAllowed;
   };
 
   return (
     <NumberFormat
+      customInput={TextField}
       allowNegative={false}
       isAllowed={withValueLimit}
-      customInput={TextField}
       onValueChange={onValueChange}
       {...textFieldProps}
       type="text"

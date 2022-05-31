@@ -7,15 +7,17 @@ import { ArrowDownward, Box, Typography } from 'src/shared/components';
 import { createFilledArray } from 'src/shared/helpers/scripts/arrays';
 import { BigNumber, parseUnits } from 'src/shared/helpers/blockchain/numbers';
 
-import { selectProvider, setFeeAmount, swapIn } from '../../../redux/slice';
+import { selectProvider, setFeeValue, swapIn } from '../../../redux/slice';
 import { Token } from '../../../types';
 import {
   calculateSwapIn,
   calculateSwapOut,
   calculateMinOut,
+  getExistedPair,
 } from '../../../utils';
 import { PairForm } from '../../components/PairForm/PairForm';
 import { SubmitButtonValue } from './types';
+import { initialState } from './constants';
 import { createStyles } from './Swap.style';
 
 type Props = {
@@ -30,25 +32,15 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
   const theme = useTheme();
   const styles = createStyles(theme);
 
-  const tokenStateDefault = {
-    address: '',
-    name: '',
-    value: '',
-    userBalance: '',
-    pairBalance: '',
-    decimals: 0,
-  };
-  const defaultSlippage = 10;
-
   const [tokenValues, setTokenValues] = useState<
     (Token & { value: string; pairBalance: string })[]
-  >([{ ...tokenStateDefault }, { ...tokenStateDefault }]);
+  >([{ ...initialState.tokenValues }, { ...initialState.tokenValues }]);
   const [proportion, setProportion] = useState<{
     value: string | 'any' | '';
     decimals: number;
-  }>({ value: '', decimals: 0 });
-  const [tokensMax, setTokensMax] = useState<string[]>(['0', '0']);
-  const [slippage, setSlippage] = useState(defaultSlippage);
+  }>(initialState.proportion);
+  const [tokensMax, setTokensMax] = useState<string[]>(initialState.tokensMax);
+  const [slippage, setSlippage] = useState(initialState.slippage);
   const [submitValue, setSubmitValue] =
     useState<SubmitButtonValue>('Подключите кошелек');
 
@@ -88,22 +80,19 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
     }
 
     const [tokenIn, tokenOut] = pair;
-    // FIXME: вынести в утилиты
-    const tokenInData = tokens.find((token) => token.name === tokenIn.name);
-    const tokenOutData = tokens.find((token) => token.name === tokenOut.name);
-    const existedPair = pairs.find(
-      ({ tokens: [token0, token1] }) =>
-        (token0.address === tokenInData?.address &&
-          token1.address === tokenOutData?.address) ||
-        (token1.address === tokenInData?.address &&
-          token0.address === tokenOutData?.address)
-    );
+    const { existedPair, tokenInData, tokenOutData } = getExistedPair({
+      tokenInName: tokenIn.name,
+      tokenOutName: tokenOut.name,
+      tokens,
+      pairs,
+    });
 
-    if (
+    const arePairTokensDefined =
       existedPair !== undefined &&
       tokenInData !== undefined &&
-      tokenOutData !== undefined
-    ) {
+      tokenOutData !== undefined;
+
+    if (arePairTokensDefined) {
       const {
         tokens: [token0, token1],
       } = existedPair;
@@ -177,20 +166,17 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
         });
       }
     } else {
-      setProportion({
-        value: '',
-        decimals: 0,
-      });
+      setProportion(initialState.proportion);
       setTokenValues(
         tokenValues.map((token) => {
           return {
-            ...tokenStateDefault,
+            ...initialState.tokenValues,
             value: token.value,
           };
         })
       );
-      setTokensMax(['0', '0']);
-      dispatch(setFeeAmount('0'));
+      setTokensMax(initialState.tokensMax);
+      dispatch(setFeeValue('0'));
     }
   };
 
@@ -259,7 +245,7 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
         .times(fee.value)
         .toString();
 
-      dispatch(setFeeAmount(calculateValueFeeAmount));
+      dispatch(setFeeValue(calculateValueFeeAmount));
     }
   };
 
@@ -307,7 +293,7 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
       .toFixed(tokenIn.decimals);
 
     proportionHint = `1 ${tokenIn.name} = ${swapOutValue} ${tokenOut.name}`;
-    commissionHint = `commission: ${new BigNumber(tokenOut.value)
+    commissionHint = `комиссия: ${new BigNumber(tokenOut.value)
       .minus(new BigNumber(tokenIn.value).times(proportion.value))
       .abs()
       .toFixed(tokenOut.decimals)} ${tokenOut.name}`;
@@ -342,7 +328,7 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
       }
       actionIcon={<ArrowDownward />}
       slider={{
-        defaultValue: defaultSlippage,
+        defaultValue: initialState.slippage,
         min: 0,
         max: 50,
         marks: createFilledArray(50 / 5 + 1, (undefinedValue, index) => {

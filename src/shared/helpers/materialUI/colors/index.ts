@@ -1,3 +1,5 @@
 import { convertColor } from './convertColor';
+import { getRandomColor } from './getRandomColor';
+import { stringToColor } from './stringToColor';
 
-export { convertColor };
+export { convertColor, getRandomColor, stringToColor };

@@ -3,9 +3,10 @@ import { ethers } from 'ethers';
 
 import { fetchReadFromRegistry } from 'src/shared/api/blockchain/rinkeby/fetches/readFromRegistry';
 import { fetchWriteToRouter } from 'src/shared/api/blockchain/rinkeby/fetches/writeToRouter';
-import { fetchWriteToFactory } from 'src/shared/api/blockchain/rinkeby/fetches/writeToFactory';
 import { fetchWriteToERC20 } from 'src/shared/api/blockchain/rinkeby/fetches/writeToERC20';
 import { isError } from 'src/shared/types/guards';
+
+import { createPair } from './tasks';
 
 type Options = {
   tokenInAddress: string;
@@ -42,31 +43,24 @@ const addLiquidity = createAsyncThunk(
     const hasPair = !/^0x0+$/.test(registry.getPair);
 
     if (!hasPair) {
-      const txFactory = await fetchWriteToFactory({
-        contractParameters: { signer },
-        methods: { createPair: [tokenInAddress, tokenOutAddress] },
-      });
-
-      if (isError(txFactory)) {
-        return Promise.reject(txFactory);
-      }
-
-      await txFactory.createPair.wait();
-
-      registry = await fetchReadFromRegistry({
-        contractParameters: { provider },
-        methods: { getPair: [tokenInAddress, tokenOutAddress] },
+      registry = await createPair({
+        tokenInAddress,
+        tokenOutAddress,
+        provider,
+        signer,
       });
 
       if (isError(registry)) {
-        return Promise.reject(registry);
+        Promise.reject(registry);
       }
+    }
 
-      if (registry?.getPair === undefined) {
-        return Promise.reject(
-          new Error('registry.getPair result is undefined')
-        );
-      }
+    if (isError(registry)) {
+      return Promise.reject(registry);
+    }
+
+    if (registry?.getPair === undefined) {
+      return Promise.reject(new Error('registry.getPair result is undefined'));
     }
 
     const txTokenIn = await fetchWriteToERC20({

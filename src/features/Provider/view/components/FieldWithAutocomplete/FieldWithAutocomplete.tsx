@@ -2,20 +2,20 @@ import { FC, SyntheticEvent } from 'react';
 import { useTheme } from '@mui/material';
 
 import {
-  Box,
-  TextField,
   InputAdornment,
   Autocomplete,
+  Box,
   Avatar,
-  Typography,
+  TextField,
   Button,
+  Typography,
 } from 'src/shared/components';
 
+import type { Item } from '../types';
 import {
   MaskedDecimalField,
   Props as MaskedDecimalFieldProps,
 } from '../MaskedDecimalField/MaskedDecimalField';
-import type { Item } from '../types';
 import { createStyles } from './FieldWithAutocomplete.style';
 
 type Props = MaskedDecimalFieldProps & {
@@ -34,8 +34,8 @@ type Props = MaskedDecimalFieldProps & {
 const FieldWithAutocomplete: FC<Props> = ({
   options,
   optionText,
-  max,
-  disabled,
+  max = '0',
+  disabled = false,
   handleAutocompleteChange,
   handleMaxClick,
   ...maskedDecimalFieldProps
@@ -45,6 +45,7 @@ const FieldWithAutocomplete: FC<Props> = ({
 
   return (
     <MaskedDecimalField
+      css={styles.root()}
       max={max}
       disabled={disabled}
       {...maskedDecimalFieldProps}

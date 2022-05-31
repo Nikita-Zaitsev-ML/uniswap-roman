@@ -18,12 +18,14 @@ const removeLiquidity = createAsyncThunk(
     pair: { tokens, userBalance, decimals },
     signer,
   }: Options): Promise<void> => {
+    const [token0, token1] = tokens;
+
     const txRouter = await fetchWriteToRouter({
       contractParameters: { signer },
       methods: {
         removeLiquidity: [
-          tokens[0].address,
-          tokens[1].address,
+          token0.address,
+          token1.address,
           parseUnits(userBalance, decimals),
         ],
       },

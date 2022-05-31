@@ -41,7 +41,10 @@ module.exports = {
     ],
 
     // CSS-in-JS
-    'property-no-unknown': [true, { ignoreProperties: ['label'] }],
+    'property-no-unknown': [
+      true,
+      { ignoreProperties: ['label', 'box-orient'] },
+    ],
     'function-name-case': null,
     'value-keyword-case': null,
     'no-empty-source': null,

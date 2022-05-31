@@ -1,10 +1,14 @@
 import { css } from '@mui/material';
 
+import { stringToColor } from 'src/shared/helpers/materialUI/colors';
 import { Theme } from 'src/shared/styles/theme';
 
 import type { Props } from './Avatar';
 
-const createStyles = (props: Pick<Props, 'hasBorder'>, theme: Theme) => ({
+const createStyles = (
+  props: Required<Pick<Props, 'userName' | 'hasBorder'>>,
+  theme: Theme
+) => ({
   root: () => css`
     width: 100%;
   `,
@@ -33,7 +37,7 @@ const createStyles = (props: Pick<Props, 'hasBorder'>, theme: Theme) => ({
       left: 0;
       width: 100%;
       height: 100%;
-      background-color: transparent;
+      background-color: ${stringToColor(props.userName)};
       color: black;
 
       ${border}

@@ -24,7 +24,7 @@ const Avatar: FC<Props> = ({
   ...MUIProps
 }) => {
   const theme = useTheme();
-  const styles = createStyles({ hasBorder }, theme);
+  const styles = createStyles({ userName, hasBorder }, theme);
 
   return (
     <>

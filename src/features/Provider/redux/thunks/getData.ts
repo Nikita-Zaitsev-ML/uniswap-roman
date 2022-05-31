@@ -4,7 +4,8 @@ import { defaults } from 'lodash';
 
 import { isError } from 'src/shared/types/guards';
 
-import { Token, Pair, State } from '../../types';
+import { State } from '../../types';
+import { isPairFull, isTokenFull } from '../../guards';
 import { initialState } from '../initialState';
 import { getTokens, getPairs, getFee } from './tasks';
 
@@ -22,17 +23,7 @@ const getData = createAsyncThunk(
       return Promise.reject(tokens);
     }
 
-    const fullTokens = tokens.filter(
-      ({ address, name, userBalance, decimals }) => {
-        const isFull =
-          address !== undefined &&
-          name !== undefined &&
-          userBalance !== undefined &&
-          decimals !== undefined;
-
-        return isFull;
-      }
-    ) as Token[];
+    const fullTokens = tokens.filter(isTokenFull);
 
     const pairs = await getPairs({ userAddress, provider, tokens: fullTokens });
 
@@ -40,17 +31,7 @@ const getData = createAsyncThunk(
       return Promise.reject(pairs);
     }
 
-    const fullPairs = pairs.filter(
-      ({ address, userBalance, decimals, proportion }) => {
-        const isFull =
-          address !== undefined &&
-          userBalance !== undefined &&
-          decimals !== undefined &&
-          proportion !== undefined;
-
-        return isFull;
-      }
-    ) as Pair[];
+    const fullPairs = pairs.filter(isPairFull);
 
     const fee = await getFee({ provider });
 

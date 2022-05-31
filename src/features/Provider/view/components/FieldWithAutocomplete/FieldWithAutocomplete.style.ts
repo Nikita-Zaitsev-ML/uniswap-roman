@@ -15,11 +15,11 @@ const createStyles = (theme: Theme) => ({
   `,
   optionText: () =>
     css`
-      margin-left: ${theme.spacing(8)};
+      display: box;
+      box-orient: vertical;
+      line-clamp: 2;
       flex: 0 1 65%;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
+      margin-left: ${theme.spacing(8)};
       word-break: break-word;
     `,
   balance: () => css`

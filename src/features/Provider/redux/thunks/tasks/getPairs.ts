@@ -7,6 +7,7 @@ import { BigNumber, formatUnits } from 'src/shared/helpers/blockchain/numbers';
 import { isError, isNotError, isNotNull } from 'src/shared/types/guards';
 
 import { Token, Pair } from '../../../types';
+import { makeUpPairs } from '../../../utils';
 
 type Options = {
   tokens: Token[];
@@ -19,16 +20,10 @@ const getPairs = async ({
   userAddress,
   provider,
 }: Options): Promise<Partial<Pair>[] | Error> => {
-  const allPairs = [];
+  const pairs = makeUpPairs(tokens);
 
-  for (let i = 0; i < tokens.length - 1; i += 1) {
-    for (let j = i + 1; j < tokens.length; j += 1) {
-      allPairs.push({ token0: tokens[i], token1: tokens[j] });
-    }
-  }
-
-  const pairs = await Promise.all(
-    allPairs.map(async ({ token0, token1 }) => {
+  const pairsData = await Promise.all(
+    pairs.map(async ({ token0, token1 }) => {
       const registry = await fetchReadFromRegistry({
         contractParameters: { provider },
         methods: { getPair: [token0.address, token1.address] },
@@ -117,7 +112,7 @@ const getPairs = async ({
     })
   );
 
-  const existedPairs = pairs.filter(isNotNull);
+  const existedPairs = pairsData.filter(isNotNull);
   const pairWithError = existedPairs.find(isError);
 
   if (isError(pairWithError)) {

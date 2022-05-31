@@ -23,12 +23,12 @@ import { createStyles } from './PairForm.style';
 
 type Props = {
   title: string;
-  hint?: ReactElement;
-  actionIcon?: ReactElement;
   items: Item[];
   itemText: string;
+  hint?: ReactElement;
+  actionIcon?: ReactElement;
   values?: string[];
-  max: string[];
+  max?: string[];
   isMaxSync?: boolean;
   submitValue: string;
   disabled?: boolean;
@@ -52,14 +52,14 @@ type Props = {
 
 const PairForm: FC<Props> = ({
   title,
-  hint = undefined,
-  actionIcon = <ArrowDownward />,
   items,
   itemText,
+  hint = undefined,
+  actionIcon = <ArrowDownward />,
   values = undefined,
-  max,
+  max = ['0', '0'],
   isMaxSync = false,
-  submitValue,
+  submitValue = 'Отправить',
   disabled = false,
   isSubmitDisabled = disabled,
   onPairSet,

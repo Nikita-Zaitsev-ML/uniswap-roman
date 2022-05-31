@@ -6,9 +6,11 @@ import { Add, Typography } from 'src/shared/components';
 import { BigNumber, parseUnits } from 'src/shared/helpers/blockchain/numbers';
 
 import { selectProvider, addLiquidity } from '../../../redux/slice';
+import { getExistedPair } from '../../../utils';
 import { PairForm } from '../../components/PairForm/PairForm';
 import { ViewPairs } from '../ViewPairs/ViewPairs';
 import { ViewType, SubmitButtonValue } from './types';
+import { initialState } from './constants';
 import { createStyles } from './Pools.style';
 
 type Props = {
@@ -24,12 +26,14 @@ const Pools: FC<Props> = ({ userAddress, provider, signer, disabled }) => {
   const styles = createStyles();
 
   const [viewType, setViewType] = useState<ViewType>('add');
-  const [tokenValues, setTokenValues] = useState<string[]>(['', '']);
+  const [tokenValues, setTokenValues] = useState<string[]>(
+    initialState.tokenValues
+  );
   const [proportion, setProportion] = useState<{
     value: string | 'any' | '';
     decimals: number;
-  }>({ value: '', decimals: 0 });
-  const [tokensMax, setTokensMax] = useState<string[]>(['0', '0']);
+  }>(initialState.proportion);
+  const [tokensMax, setTokensMax] = useState<string[]>(initialState.tokensMax);
   const [submitValue, setSubmitValue] =
     useState<SubmitButtonValue>('Подключите кошелек');
   const [isDisabled, setIsDisabled] = useState(false);
@@ -40,8 +44,8 @@ const Pools: FC<Props> = ({ userAddress, provider, signer, disabled }) => {
 
   useEffect(() => {
     if (viewType === 'remove') {
-      setTokensMax(['0', '0']);
-      setProportion({ value: '', decimals: 0 });
+      setTokensMax(initialState.tokensMax);
+      setProportion(initialState.proportion);
 
       if (isAuth) {
         setSubmitValue('Выберите токены');
@@ -78,15 +82,12 @@ const Pools: FC<Props> = ({ userAddress, provider, signer, disabled }) => {
     }
 
     const [tokenIn, tokenOut] = pair;
-    const tokenInData = tokens.find((token) => token.name === tokenIn.name);
-    const tokenOutData = tokens.find((token) => token.name === tokenOut.name);
-    const existedPair = pairs.find(
-      ({ tokens: [token0, token1] }) =>
-        (token0.address === tokenInData?.address &&
-          token1.address === tokenOutData?.address) ||
-        (token1.address === tokenInData?.address &&
-          token0.address === tokenOutData?.address)
-    );
+    const { existedPair, tokenInData, tokenOutData } = getExistedPair({
+      tokenInName: tokenIn.name,
+      tokenOutName: tokenOut.name,
+      tokens,
+      pairs,
+    });
 
     if (existedPair !== undefined) {
       const {
@@ -147,12 +148,9 @@ const Pools: FC<Props> = ({ userAddress, provider, signer, disabled }) => {
         setTokensMax(tokensMaxToSet);
       }
     } else {
-      setProportion({
-        value: '',
-        decimals: 0,
-      });
-      setTokenValues(['', '']);
-      setTokensMax(['0', '0']);
+      setProportion(initialState.proportion);
+      setTokenValues(initialState.tokenValues);
+      setTokensMax(initialState.tokensMax);
     }
   };
 
@@ -163,7 +161,7 @@ const Pools: FC<Props> = ({ userAddress, provider, signer, disabled }) => {
       const { field, value } = event;
 
       if (value === undefined || value === '') {
-        setTokenValues(['', '']);
+        setTokenValues(initialState.tokenValues);
 
         return;
       }
