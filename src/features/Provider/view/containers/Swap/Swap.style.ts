@@ -13,6 +13,11 @@ const createStyles = (theme: Theme) => ({
       color: ${theme.palette.grey['400']};
       word-break: break-word;
     `,
+  commission: () =>
+    css`
+      color: ${theme.palette.grey['400']};
+      word-break: break-word;
+    `,
 });
 
 export { createStyles };

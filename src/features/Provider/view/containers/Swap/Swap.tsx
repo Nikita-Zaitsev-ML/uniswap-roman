@@ -56,7 +56,11 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
     setSubmitValue('Выберите токены');
   }
 
-  const canSwap = !(proportion.value === '' || proportion.value === 'any');
+  const canSwap = !(
+    new BigNumber(tokenValues['0'].value).eq(0) ||
+    proportion.value === '' ||
+    proportion.value === 'any'
+  );
   const isSubmitDisabled =
     !canSwap ||
     submitValue === 'Подключите кошелек' ||
@@ -100,7 +104,7 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
         ? [token0.pairBalance, token1.pairBalance].reverse()
         : [token0.pairBalance, token1.pairBalance];
 
-      const minTokenIn = BigNumber.min(
+      const maxTokenIn = BigNumber.min(
         tokenInData.userBalance,
         tokenInPairBalance
       ).toString();
@@ -112,7 +116,7 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
 
         if (index === 1) {
           const tokenOutMaxToSet = calculateSwapIn({
-            amountIn: parseUnits(minTokenIn, tokenInData.decimals),
+            amountIn: parseUnits(maxTokenIn, tokenInData.decimals),
             balanceIn: parseUnits(tokenInPairBalance, tokenInData.decimals),
             balanceOut: parseUnits(tokenOutPairBalance, tokenOutData.decimals),
             fee: {
@@ -125,7 +129,7 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
           return tokenOutMaxToSet;
         }
 
-        const tokenInMaxToSet = minTokenIn;
+        const tokenInMaxToSet = maxTokenIn;
 
         return tokenInMaxToSet;
       });
@@ -152,12 +156,12 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
       if (shouldReverse) {
         setProportion({
           decimals: existedPair.decimals,
-          value: new BigNumber('1').div(existedPair.proportion).toString(),
+          value: existedPair.proportion,
         });
       } else {
         setProportion({
           decimals: existedPair.decimals,
-          value: existedPair.proportion,
+          value: new BigNumber('1').div(existedPair.proportion).toString(),
         });
       }
     } else {
@@ -279,21 +283,22 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
   };
 
   const [tokenIn, tokenOut] = tokenValues;
-  let swapOut;
-  let swapHint;
+  let proportionHint;
+  let commissionHint;
 
-  if (tokenIn.name !== '' && tokenOut.name !== '') {
-    swapOut = calculateSwapIn({
-      amountIn: parseUnits('1', tokenIn.decimals),
-      balanceIn: parseUnits(tokenIn.pairBalance, tokenIn.decimals),
-      balanceOut: parseUnits(tokenOut.pairBalance, tokenOut.decimals),
-      fee: {
-        amount: parseUnits(fee.value, fee.decimals),
-        decimals: fee.decimals,
-      },
-      decimals: Math.max(tokenIn.decimals, tokenOut.decimals),
-    });
-    swapHint = `1 ${tokenIn.name} = ${swapOut} ${tokenOut.name}`;
+  const hasTokens = tokenIn.name !== '' && tokenOut.name !== '';
+  const hasValues = tokenIn.value !== '' && tokenOut.value !== '';
+
+  if (hasTokens && hasValues) {
+    const swapOutValue = new BigNumber('1')
+      .times(proportion.value)
+      .toFixed(tokenIn.decimals);
+
+    proportionHint = `1 ${tokenIn.name} = ${swapOutValue} ${tokenOut.name}`;
+    commissionHint = `commission: ${new BigNumber(tokenOut.value)
+      .minus(new BigNumber(tokenIn.value).times(proportion.value))
+      .abs()
+      .toFixed(tokenOut.decimals)} ${tokenOut.name}`;
   }
 
   return (
@@ -301,9 +306,16 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
       title={'Обменять'}
       hint={
         <Box css={styles.hint()}>
-          <Typography css={styles.proportion()} variant="caption">
-            {swapHint}
-          </Typography>
+          {proportionHint && (
+            <Typography css={styles.proportion()} variant="caption">
+              {proportionHint}
+            </Typography>
+          )}
+          {commissionHint && (
+            <Typography css={styles.commission()} variant="caption">
+              {commissionHint}
+            </Typography>
+          )}
         </Box>
       }
       actionIcon={<ArrowDownward />}
