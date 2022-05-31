@@ -1,3 +1,4 @@
-import { calculateSwap } from './calculateSwap';
+import { calculateSwapIn } from './calculateSwapIn';
+import { calculateSwapOut } from './calculateSwapOut';
 
-export { calculateSwap };
+export { calculateSwapIn, calculateSwapOut };

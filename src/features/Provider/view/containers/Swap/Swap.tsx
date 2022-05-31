@@ -7,8 +7,9 @@ import { ArrowDownward, Box, Typography } from 'src/shared/components';
 import { BigNumber, parseUnits } from 'src/shared/helpers/blockchain/numbers';
 
 import { selectProvider, setFeeAmount, swapIn } from '../../../redux/slice';
+import { Token } from '../../../types';
+import { calculateSwapIn, calculateSwapOut } from '../../../utils';
 import { PairForm } from '../../components/PairForm/PairForm';
-import { calculateSwap } from '../../../utils';
 import { SubmitButtonValue } from './types';
 import { createStyles } from './Swap.style';
 
@@ -24,17 +25,26 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
   const theme = useTheme();
   const styles = createStyles(theme);
 
+  const tokenStateDefault = {
+    address: '',
+    name: '',
+    value: '',
+    userBalance: '',
+    pairBalance: '',
+    decimals: 0,
+  };
+
   const [tokenValues, setTokenValues] = useState<
-    { amount: string; decimals: number }[]
-  >([
-    { amount: '', decimals: 0 },
-    { amount: '', decimals: 0 },
-  ]);
+    (Token & { value: string; pairBalance: string })[]
+  >([{ ...tokenStateDefault }, { ...tokenStateDefault }]);
   const [proportion, setProportion] = useState<{
     value: string | 'any' | '';
     decimals: number;
   }>({ value: '', decimals: 0 });
   const [tokensMax, setTokensMax] = useState<string[]>(['0', '0']);
+  // TODO: add slippage view
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [slippage, setSlippage] = useState(10);
   const [submitValue, setSubmitValue] =
     useState<SubmitButtonValue>('Подключите кошелек');
 
@@ -62,6 +72,7 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
     }
 
     const [tokenIn, tokenOut] = pair;
+    // FIXME: вынести в утилиты
     const tokenInData = tokens.find((token) => token.name === tokenIn.name);
     const tokenOutData = tokens.find((token) => token.name === tokenOut.name);
     const existedPair = pairs.find(
@@ -72,10 +83,27 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
           token0.address === tokenOutData?.address)
     );
 
-    if (existedPair !== undefined) {
+    if (
+      existedPair !== undefined &&
+      tokenInData !== undefined &&
+      tokenOutData !== undefined
+    ) {
       const {
         tokens: [token0, token1],
       } = existedPair;
+
+      const shouldReverse =
+        token0.address === tokenOutData?.address &&
+        token1.address === tokenInData?.address;
+
+      const [tokenInPairBalance, tokenOutPairBalance] = shouldReverse
+        ? [token0.pairBalance, token1.pairBalance].reverse()
+        : [token0.pairBalance, token1.pairBalance];
+
+      const minTokenIn = BigNumber.min(
+        tokenInData.userBalance,
+        tokenInPairBalance
+      ).toString();
 
       const tokensMaxToSet = pair.map(({ name }, index) => {
         if (name === '' || existedPair.proportion === 'any') {
@@ -83,63 +111,68 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
         }
 
         if (index === 1) {
-          const maxToken1 = new BigNumber(token0.userBalance)
-            .div(existedPair.proportion)
-            .toString();
+          const tokenOutMaxToSet = calculateSwapIn({
+            amountIn: parseUnits(minTokenIn, tokenInData.decimals),
+            balanceIn: parseUnits(tokenInPairBalance, tokenInData.decimals),
+            balanceOut: parseUnits(tokenOutPairBalance, tokenOutData.decimals),
+            fee: {
+              amount: parseUnits(fee.value, fee.decimals),
+              decimals: fee.decimals,
+            },
+            decimals: Math.max(tokenInData.decimals, tokenOutData.decimals),
+          });
 
-          const token1MaxToSet = new BigNumber(maxToken1).gt(token1.userBalance)
-            ? token1.userBalance
-            : maxToken1;
-
-          return token1MaxToSet;
+          return tokenOutMaxToSet;
         }
 
-        const maxToken0 = new BigNumber(token1.userBalance)
-          .times(existedPair.proportion)
-          .toString();
-        const token0MaxToSet = new BigNumber(maxToken0).gt(token0.userBalance)
-          ? token0.userBalance
-          : maxToken0;
+        const tokenInMaxToSet = minTokenIn;
 
-        return token0MaxToSet;
+        return tokenInMaxToSet;
       });
 
-      const tokenValuesToSet = tokenValues.map((value, index) => {
+      const tokenValuesToSet = tokenValues.map((token, index) => {
         if (index === 1) {
-          return { ...value, decimals: token1.decimals };
+          return {
+            ...tokenOutData,
+            value: '',
+            pairBalance: tokenOutPairBalance,
+          };
         }
 
-        return { ...value, decimals: token0.decimals };
+        return {
+          ...tokenInData,
+          value: '',
+          pairBalance: tokenInPairBalance,
+        };
       });
 
-      const shouldReverse =
-        token0.address === tokenOutData?.address &&
-        token1.address === tokenInData?.address;
+      setTokenValues(tokenValuesToSet);
+      setTokensMax(tokensMaxToSet);
 
       if (shouldReverse) {
-        setTokenValues(tokenValues.reverse());
         setProportion({
+          decimals: existedPair.decimals,
           value: new BigNumber('1').div(existedPair.proportion).toString(),
-          decimals: existedPair.decimals,
         });
-        setTokensMax(tokensMaxToSet.reverse());
       } else {
-        setTokenValues(tokenValuesToSet);
         setProportion({
-          value: existedPair.proportion,
           decimals: existedPair.decimals,
+          value: existedPair.proportion,
         });
-        setTokensMax(tokensMaxToSet);
       }
     } else {
       setProportion({
         value: '',
         decimals: 0,
       });
-      setTokenValues([
-        { amount: '', decimals: 0 },
-        { amount: '', decimals: 0 },
-      ]);
+      setTokenValues(
+        tokenValues.map((token) => {
+          return {
+            ...tokenStateDefault,
+            value: token.value,
+          };
+        })
+      );
       setTokensMax(['0', '0']);
       dispatch(setFeeAmount('0'));
     }
@@ -152,40 +185,53 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
       const { field, value } = event;
 
       if (value === undefined || value === '') {
-        setTokenValues([
-          { amount: '', decimals: 0 },
-          { amount: '', decimals: 0 },
-        ]);
+        setTokenValues(
+          tokenValues.map((token) => {
+            return { ...token, value: '' };
+          })
+        );
 
         return;
       }
 
       const [tokenIn, tokenOut] = tokenValues;
-      let computedValue;
+      let calculatedValue;
 
       switch (field) {
         case 'theFirst': {
-          computedValue =
-            proportion.value === 'any'
-              ? tokenValues[1].amount
-              : new BigNumber(value).div(proportion.value).toString();
+          calculatedValue = calculateSwapIn({
+            amountIn: parseUnits(value, tokenIn.decimals),
+            balanceIn: parseUnits(tokenIn.pairBalance, tokenIn.decimals),
+            balanceOut: parseUnits(tokenOut.pairBalance, tokenOut.decimals),
+            fee: {
+              amount: parseUnits(fee.value, fee.decimals),
+              decimals: fee.decimals,
+            },
+            decimals: Math.max(tokenIn.decimals, tokenOut.decimals),
+          });
 
           setTokenValues([
-            { ...tokenIn, amount: value },
-            { ...tokenOut, amount: computedValue },
+            { ...tokenIn, value: value || '' },
+            { ...tokenOut, value: calculatedValue },
           ]);
 
           break;
         }
         case 'theSecond': {
-          computedValue =
-            proportion.value === 'any'
-              ? tokenValues[0].amount
-              : new BigNumber(value).times(proportion.value).toString();
+          calculatedValue = calculateSwapOut({
+            amountOut: parseUnits(value, tokenOut.decimals),
+            balanceIn: parseUnits(tokenIn.pairBalance, tokenIn.decimals),
+            balanceOut: parseUnits(tokenOut.pairBalance, tokenOut.decimals),
+            fee: {
+              amount: parseUnits(fee.value, fee.decimals),
+              decimals: fee.decimals,
+            },
+            decimals: Math.max(tokenIn.decimals, tokenOut.decimals),
+          });
 
           setTokenValues([
-            { ...tokenIn, amount: computedValue },
-            { ...tokenOut, amount: value },
+            { ...tokenIn, value: calculatedValue },
+            { ...tokenOut, value: value || '' },
           ]);
 
           break;
@@ -193,50 +239,38 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
         // no default
       }
 
-      const computedValueFeeAmount = new BigNumber(computedValue)
+      const calculateValueFeeAmount = new BigNumber(calculatedValue)
         .times(fee.value)
         .toString();
 
-      dispatch(setFeeAmount(computedValueFeeAmount));
+      dispatch(setFeeAmount(calculateValueFeeAmount));
     }
   };
 
   const onSubmit: Parameters<typeof PairForm>['0']['onSubmit'] = async (
     submission
   ) => {
-    const { theFirstItem, theSecondItem } = submission;
-    const tokenIn = tokens.find((token) => token.name === theFirstItem);
-    const tokenOut = tokens.find((token) => token.name === theSecondItem);
-    const tokenInValue = submission.theFirstItemValue;
-
-    const areOptionsValid =
-      tokenIn?.address !== undefined &&
-      tokenIn?.decimals !== undefined &&
-      tokenIn.userBalance !== undefined &&
-      tokenOut?.address !== undefined &&
-      tokenOut?.decimals !== undefined &&
-      tokenOut.userBalance !== undefined &&
-      provider !== null &&
-      signer !== null;
+    const areOptionsValid = provider !== null && signer !== null;
 
     if (areOptionsValid) {
-      const tokenOutMin = calculateSwap({
-        amountIn: parseUnits(tokenInValue, tokenIn.decimals),
-        balanceIn: parseUnits(tokenIn.userBalance, tokenIn.decimals),
-        balanceOut: parseUnits(tokenOut.userBalance, tokenOut.decimals),
-        fee: {
-          amount: parseUnits(fee.value, fee.decimals),
-          decimals: fee.decimals,
-        },
-        decimals: Math.max(tokenIn.decimals, tokenOut.decimals),
-      });
+      const [tokenIn, tokenOut] = tokenValues;
+      const tokenInValue = submission.theFirstItemValue;
+      const tokenOutValue = submission.theSecondItemValue;
+
+      // TODO: добавить slippage и вынести это так чтобы давать подсказку сколько минимально получит пользователь
+      const tokenOutValueBigNumber = new BigNumber(
+        parseUnits(tokenOutValue, tokenOut.decimals).toString()
+      );
+      const tokenOutMin = tokenOutValueBigNumber
+        .minus(tokenOutValueBigNumber.times(slippage).div(100))
+        .toFixed(0);
 
       await dispatch(
         swapIn({
           tokenInAddress: tokenIn.address,
           tokenInValue: parseUnits(tokenInValue, tokenIn.decimals),
           tokenOutAddress: tokenOut.address,
-          tokenOutMin: parseUnits(tokenOutMin, tokenOut.decimals),
+          tokenOutMin: ethers.BigNumber.from(tokenOutMin),
           provider,
           signer,
         })
@@ -244,38 +278,22 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
     }
   };
 
-  const [, tokenOut] = tokenValues;
-  const commissionPercentHint =
-    fee.value === '0'
-      ? ''
-      : `комиссия платформы: ${new BigNumber(fee.value).toFixed(
-          fee.decimals
-        )}%`;
-  let commissionAmountHint = '';
-  let proportionHint = '';
+  const [tokenIn, tokenOut] = tokenValues;
+  let swapOut;
+  let swapHint;
 
-  commissionAmountHint = `вы получите меньше на: ${new BigNumber(
-    fee.value
-  ).toFixed(tokenOut.decimals)}`;
-
-  switch (proportion.value) {
-    case 'any': {
-      proportionHint = 'В системе недостаточно ликвидности';
-
-      break;
-    }
-    case '': {
-      proportionHint = '';
-
-      break;
-    }
-    default: {
-      proportionHint = `пропорция: ${new BigNumber(proportion.value).toFixed(
-        proportion.decimals
-      )}`;
-
-      break;
-    }
+  if (tokenIn.name !== '' && tokenOut.name !== '') {
+    swapOut = calculateSwapIn({
+      amountIn: parseUnits('1', tokenIn.decimals),
+      balanceIn: parseUnits(tokenIn.pairBalance, tokenIn.decimals),
+      balanceOut: parseUnits(tokenOut.pairBalance, tokenOut.decimals),
+      fee: {
+        amount: parseUnits(fee.value, fee.decimals),
+        decimals: fee.decimals,
+      },
+      decimals: Math.max(tokenIn.decimals, tokenOut.decimals),
+    });
+    swapHint = `1 ${tokenIn.name} = ${swapOut} ${tokenOut.name}`;
   }
 
   return (
@@ -283,23 +301,15 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
       title={'Обменять'}
       hint={
         <Box css={styles.hint()}>
-          {proportionHint && (
-            <Typography css={styles.proportion()} variant="caption">
-              {proportionHint}
-            </Typography>
-          )}
-          <Typography css={styles.commission()} variant="caption">
-            {commissionPercentHint}
-          </Typography>
-          <Typography css={styles.commission()} variant="caption">
-            {commissionAmountHint}
+          <Typography css={styles.proportion()} variant="caption">
+            {swapHint}
           </Typography>
         </Box>
       }
       actionIcon={<ArrowDownward />}
       items={tokens}
       itemText={'токен'}
-      values={tokenValues.map(({ amount }) => amount)}
+      values={tokenValues.map(({ value }) => value)}
       onValueChange={onValueChange}
       max={tokensMax}
       isMaxSync

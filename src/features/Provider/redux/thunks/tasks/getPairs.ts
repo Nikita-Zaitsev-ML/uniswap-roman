@@ -82,18 +82,37 @@ const getPairs = async ({
         balanceOfToken0.isZero() ||
         balanceOfToken1.isZero();
 
-      const proportion = isProportionUndefined
-        ? 'any'
-        : new BigNumber(formatUnits(balanceOfToken0, token0.decimals))
-            .div(formatUnits(balanceOfToken1, token1.decimals))
-            .toString();
+      let formattedBalanceOfToken0;
+      let formattedBalanceOfToken1;
+      let proportion;
+
+      if (isProportionUndefined) {
+        formattedBalanceOfToken0 = '';
+        formattedBalanceOfToken1 = '';
+        proportion = 'any';
+      } else {
+        formattedBalanceOfToken0 = formatUnits(
+          balanceOfToken0,
+          token0.decimals
+        );
+        formattedBalanceOfToken1 = formatUnits(
+          balanceOfToken1,
+          token1.decimals
+        );
+        proportion = new BigNumber(formattedBalanceOfToken0)
+          .div(formattedBalanceOfToken1)
+          .toString();
+      }
 
       return {
         address,
-        tokens: [token0, token1],
+        tokens: [
+          { ...token0, pairBalance: formattedBalanceOfToken0 },
+          { ...token1, pairBalance: formattedBalanceOfToken1 },
+        ],
+        proportion,
         userBalance: balanceOf && formatUnits(balanceOf, decimals),
         decimals,
-        proportion,
       };
     })
   );

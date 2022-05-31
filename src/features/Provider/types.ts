@@ -20,7 +20,7 @@ type Token = {
 };
 
 type Pair = Omit<Token, 'name'> & {
-  tokens: Token[];
+  tokens: (Token & { pairBalance: string | '' })[];
   proportion: string | 'any';
 };
 
