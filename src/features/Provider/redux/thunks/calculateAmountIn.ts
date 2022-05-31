@@ -47,8 +47,7 @@ const calculateAmountIn = createAsyncThunk(
     console.log(
       'in',
       amountOut.toString(),
-      ERC20Pair.calculateAmoutIn[0].toString(),
-      ERC20Pair.calculateAmoutIn[1].toString()
+      ERC20Pair.calculateAmoutIn[0].toString()
     );
 
     return {
