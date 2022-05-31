@@ -1,4 +1,5 @@
 import { ComponentStory, ComponentMeta } from '@storybook/react';
+import type { ElementType } from 'react';
 
 import { Box, Props } from './Box';
 
@@ -7,9 +8,9 @@ const Meta: ComponentMeta<typeof Box> = {
   component: Box,
 };
 
-const Template: ComponentStory<typeof Box> = (props: Props) => (
-  <Box {...props} />
-);
+const Template: ComponentStory<typeof Box> = (
+  props: Props<ElementType<any>>
+) => <Box {...props} />;
 
 const Default = Template.bind({});
 Default.args = {};
