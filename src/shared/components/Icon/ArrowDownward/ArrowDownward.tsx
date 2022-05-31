@@ -4,8 +4,8 @@ import MUIArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 
 type Props = MUIArrowRightAltIconProps;
 
-const ArrowDownward: FC<Props> = ({ css, ...MUIProps }) => {
-  return <MUIArrowDownwardIcon css={css} {...MUIProps} />;
+const ArrowDownward: FC<Props> = ({ ...MUIProps }) => {
+  return <MUIArrowDownwardIcon {...MUIProps} />;
 };
 
 export type { Props };
