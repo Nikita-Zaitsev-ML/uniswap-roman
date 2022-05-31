@@ -4,11 +4,16 @@ import { useTheme } from '@mui/material';
 
 import { useAppDispatch, useAppSelector } from 'src/app/hooks';
 import { ArrowDownward, Box, Typography } from 'src/shared/components';
+import { createFilledArray } from 'src/shared/helpers/scripts/arrays';
 import { BigNumber, parseUnits } from 'src/shared/helpers/blockchain/numbers';
 
 import { selectProvider, setFeeAmount, swapIn } from '../../../redux/slice';
 import { Token } from '../../../types';
-import { calculateSwapIn, calculateSwapOut } from '../../../utils';
+import {
+  calculateSwapIn,
+  calculateSwapOut,
+  calculateMinOut,
+} from '../../../utils';
 import { PairForm } from '../../components/PairForm/PairForm';
 import { SubmitButtonValue } from './types';
 import { createStyles } from './Swap.style';
@@ -33,6 +38,7 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
     pairBalance: '',
     decimals: 0,
   };
+  const defaultSlippage = 10;
 
   const [tokenValues, setTokenValues] = useState<
     (Token & { value: string; pairBalance: string })[]
@@ -42,9 +48,7 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
     decimals: number;
   }>({ value: '', decimals: 0 });
   const [tokensMax, setTokensMax] = useState<string[]>(['0', '0']);
-  // TODO: add slippage view
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [slippage, setSlippage] = useState(10);
+  const [slippage, setSlippage] = useState(defaultSlippage);
   const [submitValue, setSubmitValue] =
     useState<SubmitButtonValue>('Подключите кошелек');
 
@@ -65,6 +69,14 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
     !canSwap ||
     submitValue === 'Подключите кошелек' ||
     submitValue === 'Выберите токены';
+
+  const handleSlippageChange: Required<
+    Parameters<typeof PairForm>['0']
+  >['slider']['onChangeCommitted'] = (event, value) => {
+    if (typeof value === 'number') {
+      setSlippage(value);
+    }
+  };
 
   const handlePairFormPairSet: Parameters<
     typeof PairForm
@@ -261,20 +273,19 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
       const tokenInValue = submission.theFirstItemValue;
       const tokenOutValue = submission.theSecondItemValue;
 
-      // TODO: добавить slippage и вынести это так чтобы давать подсказку сколько минимально получит пользователь
-      const tokenOutValueBigNumber = new BigNumber(
-        parseUnits(tokenOutValue, tokenOut.decimals).toString()
-      );
-      const tokenOutMin = tokenOutValueBigNumber
-        .minus(tokenOutValueBigNumber.times(slippage).div(100))
-        .toFixed(0);
-
       await dispatch(
         swapIn({
           tokenInAddress: tokenIn.address,
           tokenInValue: parseUnits(tokenInValue, tokenIn.decimals),
           tokenOutAddress: tokenOut.address,
-          tokenOutMin: ethers.BigNumber.from(tokenOutMin),
+          tokenOutMin: parseUnits(
+            calculateMinOut({
+              amountOut: tokenOutValue,
+              slippage,
+              decimals: tokenOut.decimals,
+            }),
+            tokenOut.decimals
+          ),
           provider,
           signer,
         })
@@ -285,6 +296,7 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
   const [tokenIn, tokenOut] = tokenValues;
   let proportionHint;
   let commissionHint;
+  let slippageHint;
 
   const hasTokens = tokenIn.name !== '' && tokenOut.name !== '';
   const hasValues = tokenIn.value !== '' && tokenOut.value !== '';
@@ -299,6 +311,11 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
       .minus(new BigNumber(tokenIn.value).times(proportion.value))
       .abs()
       .toFixed(tokenOut.decimals)} ${tokenOut.name}`;
+    slippageHint = `минимально получите: ${calculateMinOut({
+      amountOut: tokenOut.value,
+      slippage,
+      decimals: tokenOut.decimals,
+    })}`;
   }
 
   return (
@@ -316,9 +333,29 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
               {commissionHint}
             </Typography>
           )}
+          {slippageHint && (
+            <Typography css={styles.slippage()} variant="caption">
+              {slippageHint}
+            </Typography>
+          )}
         </Box>
       }
       actionIcon={<ArrowDownward />}
+      slider={{
+        defaultValue: defaultSlippage,
+        min: 0,
+        max: 50,
+        marks: createFilledArray(50 / 5 + 1, (undefinedValue, index) => {
+          const step = 50 / 10;
+          const value = index * step;
+
+          const mark = { value, label: `${value}` };
+
+          return mark;
+        }),
+        valueLabelDisplay: 'auto',
+        onChangeCommitted: handleSlippageChange,
+      }}
       items={tokens}
       itemText={'токен'}
       values={tokenValues.map(({ value }) => value)}

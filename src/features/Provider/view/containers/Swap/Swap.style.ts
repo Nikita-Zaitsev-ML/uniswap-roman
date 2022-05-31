@@ -7,17 +7,12 @@ const createStyles = (theme: Theme) => ({
   hint: () => css`
     display: grid;
     row-gap: ${theme.spacing(4)};
+    color: ${theme.palette.grey['400']};
+    word-break: break-word;
   `,
-  proportion: () =>
-    css`
-      color: ${theme.palette.grey['400']};
-      word-break: break-word;
-    `,
-  commission: () =>
-    css`
-      color: ${theme.palette.grey['400']};
-      word-break: break-word;
-    `,
+  proportion: () => css``,
+  commission: () => css``,
+  slippage: () => css``,
 });
 
 export { createStyles };

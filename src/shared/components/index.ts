@@ -32,6 +32,7 @@ import { Grid } from './Grid/Grid';
 import { Popper } from './Popper/Popper';
 import { Popover } from './Popover/Popover';
 import { CircularProgress, LinearProgress } from './Progress';
+import { Slider } from './Slider/Slider';
 import { List } from './List/List';
 import { ListItemButton } from './ListItemButton/ListItemButton';
 import { Button } from './Button/Button';
@@ -76,6 +77,7 @@ export {
   Popover,
   CircularProgress,
   LinearProgress,
+  Slider,
   List,
   ListItemButton,
   Button,

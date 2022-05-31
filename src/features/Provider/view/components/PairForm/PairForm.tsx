@@ -9,6 +9,7 @@ import {
   Box,
   Button,
   ArrowDownward,
+  Slider,
 } from 'src/shared/components';
 
 import {
@@ -46,6 +47,7 @@ type Props = {
   ) => void;
   onSubmit: (data: FormState) => void;
   switchBtn?: { value: string; onClick: () => void };
+  slider?: Parameters<typeof Slider>['0'];
 };
 
 const PairForm: FC<Props> = ({
@@ -60,10 +62,11 @@ const PairForm: FC<Props> = ({
   submitValue,
   disabled = false,
   isSubmitDisabled = disabled,
-  switchBtn = undefined,
   onPairSet,
   onValueChange,
   onSubmit,
+  switchBtn = undefined,
+  slider = undefined,
 }) => {
   const theme = useTheme();
   const styles = createStyles(theme);
@@ -249,6 +252,7 @@ const PairForm: FC<Props> = ({
                 handleMaxClick={handleTheSecondItemMaxClick}
               />
               {hint}
+              {slider !== undefined && <Slider {...slider} />}
               <Button
                 type="submit"
                 variant="contained"
