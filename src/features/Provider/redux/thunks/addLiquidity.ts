@@ -4,6 +4,7 @@ import { ethers } from 'ethers';
 import { fetchReadFromRegistry } from 'src/shared/api/blockchain/rinkeby/fetches/readFromRegistry';
 import { fetchWriteToRouter } from 'src/shared/api/blockchain/rinkeby/fetches/writeToRouter';
 import { fetchWriteToERC20 } from 'src/shared/api/blockchain/rinkeby/fetches/writeToERC20';
+import { contracts } from 'src/shared/api/blockchain/rinkeby/constants';
 import { isError } from 'src/shared/types/guards';
 
 import { createPair } from './tasks';
@@ -66,7 +67,7 @@ const addLiquidity = createAsyncThunk(
     const txTokenIn = await fetchWriteToERC20({
       contractParameters: { address: tokenInAddress, signer },
       methods: {
-        approve: [registry.getPair, tokenInValue],
+        approve: [contracts.router.address, tokenInValue],
       },
     });
 
@@ -77,7 +78,7 @@ const addLiquidity = createAsyncThunk(
     const txTokenOut = await fetchWriteToERC20({
       contractParameters: { address: tokenOutAddress, signer },
       methods: {
-        approve: [registry.getPair, tokenOutValue],
+        approve: [contracts.router.address, tokenOutValue],
       },
     });
 

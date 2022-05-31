@@ -2,7 +2,14 @@ import { createSlice } from '@reduxjs/toolkit';
 import { defaults } from 'lodash';
 
 import { initialState } from './initialState';
-import { getData, addLiquidity, removeLiquidity, swapIn } from './thunks';
+import {
+  getData,
+  addLiquidity,
+  removeLiquidity,
+  calculateAmountIn,
+  calculateAmountOut,
+  swapIn,
+} from './thunks';
 import { selectProvider } from './selectors';
 
 const slice = createSlice({
@@ -51,6 +58,32 @@ const slice = createSlice({
         state.status = 'rejected';
         state.error = action.error.message ?? '';
       })
+      .addCase(calculateAmountIn.pending, (state) => {
+        state.calculationStatus = 'pending';
+      })
+      .addCase(calculateAmountIn.fulfilled, (state, action) => {
+        const { payload } = action;
+
+        state.calculationStatus = 'fulfilled';
+        state.calculation = payload;
+      })
+      .addCase(calculateAmountIn.rejected, (state, action) => {
+        state.calculationStatus = 'rejected';
+        state.error = action.error.message ?? '';
+      })
+      .addCase(calculateAmountOut.pending, (state) => {
+        state.calculationStatus = 'pending';
+      })
+      .addCase(calculateAmountOut.fulfilled, (state, action) => {
+        const { payload } = action;
+
+        state.calculationStatus = 'fulfilled';
+        state.calculation = payload;
+      })
+      .addCase(calculateAmountOut.rejected, (state, action) => {
+        state.calculationStatus = 'rejected';
+        state.error = action.error.message ?? '';
+      })
       .addCase(swapIn.pending, (state) => {
         state.status = 'pending';
       })
@@ -76,5 +109,7 @@ export {
   getData,
   addLiquidity,
   removeLiquidity,
+  calculateAmountIn,
+  calculateAmountOut,
   swapIn,
 };

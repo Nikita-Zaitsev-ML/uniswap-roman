@@ -1,18 +1,24 @@
-import { FC, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { ethers } from 'ethers';
 import { useTheme } from '@mui/material';
 
 import { useAppDispatch, useAppSelector } from 'src/app/hooks';
 import { ArrowDownward, Box, Typography } from 'src/shared/components';
+import { REQUEST_STATUS } from 'src/shared/helpers/redux';
 import { createFilledArray } from 'src/shared/helpers/scripts/arrays';
 import { BigNumber, parseUnits } from 'src/shared/helpers/blockchain/numbers';
 
-import { selectProvider, setFeeValue, swapIn } from '../../../redux/slice';
+import {
+  selectProvider,
+  setFeeValue,
+  calculateAmountIn,
+  calculateAmountOut,
+  swapIn,
+} from '../../../redux/slice';
 import { Token } from '../../../types';
 import {
-  calculateSwapIn,
-  calculateSwapOut,
   calculateMinOut,
+  calculateSwapIn,
   getExistedPair,
 } from '../../../utils';
 import { PairForm } from '../../components/PairForm/PairForm';
@@ -36,6 +42,7 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
     (Token & { value: string; pairBalance: string })[]
   >([{ ...initialState.tokenValues }, { ...initialState.tokenValues }]);
   const [proportion, setProportion] = useState<{
+    pairAddress: string;
     value: string | 'any' | '';
     decimals: number;
   }>(initialState.proportion);
@@ -44,7 +51,8 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
   const [submitValue, setSubmitValue] =
     useState<SubmitButtonValue>('Подключите кошелек');
 
-  const { data } = useAppSelector(selectProvider);
+  const { data, calculation, calculationStatus } =
+    useAppSelector(selectProvider);
   const { tokens, pairs, fee } = data;
   const dispatch = useAppDispatch();
 
@@ -60,7 +68,8 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
   const isSubmitDisabled =
     !canSwap ||
     submitValue === 'Подключите кошелек' ||
-    submitValue === 'Выберите токены';
+    submitValue === 'Выберите токены' ||
+    calculationStatus === REQUEST_STATUS.pending;
 
   const handleSlippageChange: Required<
     Parameters<typeof PairForm>['0']
@@ -92,7 +101,7 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
       tokenInData !== undefined &&
       tokenOutData !== undefined;
 
-    if (arePairTokensDefined) {
+    if (arePairTokensDefined && provider !== null) {
       const {
         tokens: [token0, token1],
       } = existedPair;
@@ -156,11 +165,15 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
 
       if (shouldReverse) {
         setProportion({
+          ...proportion,
+          pairAddress: existedPair.address,
           decimals: existedPair.decimals,
           value: existedPair.proportion,
         });
       } else {
         setProportion({
+          ...proportion,
+          pairAddress: existedPair.address,
           decimals: existedPair.decimals,
           value: new BigNumber('1').div(existedPair.proportion).toString(),
         });
@@ -180,10 +193,12 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
     }
   };
 
-  const onValueChange: Parameters<typeof PairForm>['0']['onValueChange'] = (
+  const onValueBlur: Parameters<typeof PairForm>['0']['onValueBlur'] = (
     event
   ) => {
-    if (event !== undefined && proportion.value !== '') {
+    const isPairSet = event !== undefined && proportion.value !== '';
+
+    if (isPairSet && provider !== null) {
       const { field, value } = event;
 
       if (value === undefined || value === '') {
@@ -197,51 +212,42 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
       }
 
       const [tokenIn, tokenOut] = tokenValues;
-      let calculatedValue;
 
       switch (field) {
         case 'theFirst': {
-          calculatedValue = calculateSwapIn({
-            amountIn: parseUnits(value, tokenIn.decimals),
-            balanceIn: parseUnits(tokenIn.pairBalance, tokenIn.decimals),
-            balanceOut: parseUnits(tokenOut.pairBalance, tokenOut.decimals),
-            fee: {
-              amount: parseUnits(fee.value, fee.decimals),
-              decimals: fee.decimals,
-            },
-            decimals: Math.max(tokenIn.decimals, tokenOut.decimals),
-          });
+          dispatch(
+            calculateAmountOut({
+              pairAddress: proportion.pairAddress,
+              tokenIn: tokenIn.address,
+              tokenOut: tokenOut.address,
+              amountIn: parseUnits(value, tokenIn.decimals),
+              provider,
+            })
+          );
 
-          setTokenValues([
-            { ...tokenIn, value: value || '' },
-            { ...tokenOut, value: calculatedValue },
-          ]);
+          setTokenValues([{ ...tokenIn, value }, tokenOut]);
 
           break;
         }
         case 'theSecond': {
-          calculatedValue = calculateSwapOut({
-            amountOut: parseUnits(value, tokenOut.decimals),
-            balanceIn: parseUnits(tokenIn.pairBalance, tokenIn.decimals),
-            balanceOut: parseUnits(tokenOut.pairBalance, tokenOut.decimals),
-            fee: {
-              amount: parseUnits(fee.value, fee.decimals),
-              decimals: fee.decimals,
-            },
-            decimals: Math.max(tokenIn.decimals, tokenOut.decimals),
-          });
+          dispatch(
+            calculateAmountIn({
+              pairAddress: proportion.pairAddress,
+              tokenIn: tokenIn.address,
+              tokenOut: tokenOut.address,
+              amountOut: parseUnits(value, tokenOut.decimals),
+              provider,
+            })
+          );
 
-          setTokenValues([
-            { ...tokenIn, value: calculatedValue },
-            { ...tokenOut, value: value || '' },
-          ]);
+          setTokenValues([tokenIn, { ...tokenOut, value }]);
 
           break;
         }
         // no default
       }
 
-      const calculateValueFeeAmount = new BigNumber(calculatedValue)
+      const calculateValueFeeAmount = new BigNumber(calculation.value)
         .times(fee.value)
         .toString();
 
@@ -249,7 +255,7 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
     }
   };
 
-  const onSubmit: Parameters<typeof PairForm>['0']['onSubmit'] = async (
+  const onSubmit: Parameters<typeof PairForm>['0']['onSubmit'] = (
     submission
   ) => {
     const areOptionsValid = provider !== null && signer !== null;
@@ -259,7 +265,7 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
       const tokenInValue = submission.theFirstItemValue;
       const tokenOutValue = submission.theSecondItemValue;
 
-      await dispatch(
+      dispatch(
         swapIn({
           tokenInAddress: tokenIn.address,
           tokenInValue: parseUnits(tokenInValue, tokenIn.decimals),
@@ -279,6 +285,28 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
     }
   };
 
+  useEffect(() => {
+    if (calculationStatus !== REQUEST_STATUS.fulfilled) {
+      return;
+    }
+
+    const [tokenIn, tokenOut] = tokenValues;
+
+    switch (calculation.action) {
+      case 'in': {
+        setTokenValues([{ ...tokenIn, value: calculation.value }, tokenOut]);
+
+        break;
+      }
+      case 'out': {
+        setTokenValues([tokenIn, { ...tokenOut, value: calculation.value }]);
+
+        break;
+      }
+      // no default
+    }
+  }, [calculationStatus]);
+
   const [tokenIn, tokenOut] = tokenValues;
   let proportionHint;
   let commissionHint;
@@ -293,15 +321,12 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
       .toFixed(tokenIn.decimals);
 
     proportionHint = `1 ${tokenIn.name} = ${swapOutValue} ${tokenOut.name}`;
-    commissionHint = `комиссия: ${new BigNumber(tokenOut.value)
-      .minus(new BigNumber(tokenIn.value).times(proportion.value))
-      .abs()
-      .toFixed(tokenOut.decimals)} ${tokenOut.name}`;
+    commissionHint = `комиссия: ${calculation.fee} ${tokenOut.name}`;
     slippageHint = `минимально получите: ${calculateMinOut({
       amountOut: tokenOut.value,
       slippage,
       decimals: tokenOut.decimals,
-    })}`;
+    })} ${tokenOut.name}`;
   }
 
   return (
@@ -329,11 +354,12 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
       actionIcon={<ArrowDownward />}
       slider={{
         defaultValue: initialState.slippage,
-        min: 0,
+        min: 5,
         max: 50,
-        marks: createFilledArray(50 / 5 + 1, (undefinedValue, index) => {
+        marks: createFilledArray(50 / 5, (undefinedValue, index) => {
+          const minMark = 5;
           const step = 50 / 10;
-          const value = index * step;
+          const value = minMark + index * step;
 
           const mark = { value, label: `${value}` };
 
@@ -345,11 +371,11 @@ const Swap: FC<Props> = ({ provider, signer, disabled }) => {
       items={tokens}
       itemText={'токен'}
       values={tokenValues.map(({ value }) => value)}
-      onValueChange={onValueChange}
+      onValueBlur={onValueBlur}
       max={tokensMax}
       isMaxSync
       submitValue={submitValue}
-      disabled={disabled}
+      disabled={disabled || calculationStatus === REQUEST_STATUS.pending}
       isSubmitDisabled={isSubmitDisabled || disabled}
       onPairSet={handlePairFormPairSet}
       onSubmit={onSubmit}

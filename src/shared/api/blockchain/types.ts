@@ -1,4 +1,4 @@
-import { BigNumber, Transaction } from 'ethers';
+import { BigNumber, ethers, Transaction } from 'ethers';
 import { AccessList } from 'ethers/lib/utils';
 
 type Address = string;
@@ -113,6 +113,60 @@ type ERC20WriteAPI = {
 };
 type ERC20API = ERC20ReadAPI & ERC20WriteAPI;
 
+type ERC20PairReadAPI = {
+  allowance(owner: Address, spender: Address): ethers.BigNumber;
+  balanceOf(account: Address): ethers.BigNumber;
+  calculateAmoutIn(
+    tokenIn: Address,
+    tokenOut: Address,
+    amountOut: ethers.BigNumber
+  ): [amountIn: ethers.BigNumber, tokenInFee: ethers.BigNumber];
+  calculateAmoutOut(
+    tokenIn: Address,
+    tokenOut: Address,
+    amountIn: ethers.BigNumber
+  ): [amountOut: ethers.BigNumber, tokenOutFee: ethers.BigNumber];
+  decimals(): number;
+  fee(): Address;
+  getReserve(index: ethers.BigNumber): ethers.BigNumber;
+  name(): string;
+  owner(): Address;
+  reserves(index: ethers.BigNumber): ethers.BigNumber;
+  router(): Address;
+  symbol(): Address;
+  totalSupply(): ethers.BigNumber;
+};
+type ERC20PairWriteAPI = {
+  addLiquidity(
+    recipient: Address,
+    amount0: ethers.BigNumber,
+    amount1: ethers.BigNumber
+  ): void;
+  approve(spender: Address, amount: ethers.BigNumber): boolean;
+  decreaseAllowance(
+    spender: Address,
+    subtractedValue: ethers.BigNumber
+  ): boolean;
+  increaseAllowance(spender: Address, addedValue: ethers.BigNumber): boolean;
+  removeLiquidity(_amountLP: ethers.BigNumber, recipient: Address): void;
+  renounceOwnership(): void;
+  setFee(_fee: Address): void;
+  setRouter(_router: Address): void;
+  swap(
+    tokenIn: Address,
+    tokenOut: Address,
+    amountIn: ethers.BigNumber,
+    amountOut: ethers.BigNumber,
+    tokenFee: Address,
+    totalFee: ethers.BigNumber,
+    recipient: Address
+  ): void;
+  transfer(to: Address, amount: ethers.BigNumber): boolean;
+  transferFrom(from: Address, to: Address, amount: ethers.BigNumber): boolean;
+  transferOwnership(newOwner: Address): void;
+};
+type ERC20PairAPI = ERC20ReadAPI & ERC20WriteAPI;
+
 // https://docs.ethers.io/v5/api/providers/types/#providers-TransactionResponse
 type TransactionResponse = Transaction & {
   blockNumber: number;
@@ -145,5 +199,8 @@ export type {
   ERC20ReadAPI,
   ERC20WriteAPI,
   ERC20API,
+  ERC20PairReadAPI,
+  ERC20PairWriteAPI,
+  ERC20PairAPI,
   TransactionResponse,
 };

@@ -3,10 +3,17 @@ import { Address } from 'src/shared/api/blockchain/types';
 
 type State = {
   status: RequestStatus;
+  calculationStatus: RequestStatus;
   data: {
     tokens: Token[];
     pairs: Pair[];
     fee: Fee;
+  };
+  calculation: {
+    action: 'in' | 'out';
+    value: string;
+    fee: string;
+    decimals: number;
   };
   shouldUpdateData: boolean;
   error: string | null;

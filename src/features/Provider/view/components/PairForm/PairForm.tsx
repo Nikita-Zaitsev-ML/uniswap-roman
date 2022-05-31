@@ -1,4 +1,10 @@
-import { FC, ReactElement, useEffect, useState } from 'react';
+import {
+  FC,
+  FocusEventHandler,
+  ReactElement,
+  useEffect,
+  useState,
+} from 'react';
 import { useTheme } from '@mui/material';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -45,6 +51,14 @@ type Props = {
         }
       | undefined
   ) => void;
+  onValueBlur?: (
+    event:
+      | {
+          value: string | undefined;
+          field: 'theFirst' | 'theSecond';
+        }
+      | undefined
+  ) => void;
   onSubmit: (data: FormState) => void;
   switchBtn?: { value: string; onClick: () => void };
   slider?: Parameters<typeof Slider>['0'];
@@ -64,6 +78,7 @@ const PairForm: FC<Props> = ({
   isSubmitDisabled = disabled,
   onPairSet,
   onValueChange,
+  onValueBlur,
   onSubmit,
   switchBtn = undefined,
   slider = undefined,
@@ -100,7 +115,9 @@ const PairForm: FC<Props> = ({
   }, [setValue, values]);
 
   useEffect(() => {
-    setShouldRerender(undefined);
+    if (values?.every((value) => value !== '')) {
+      setShouldRerender(undefined);
+    }
   }, [shouldRerender]);
 
   const [theFirstItemMax, theSecondItemMax] = max;
@@ -183,6 +200,14 @@ const PairForm: FC<Props> = ({
     return handleValueChange;
   };
 
+  const makeHandleValueBlur = (field: 'theFirst' | 'theSecond') => {
+    const handleValueBlur: FocusEventHandler<HTMLInputElement> = (event) => {
+      onValueBlur?.({ value: event.target.value, field });
+    };
+
+    return handleValueBlur;
+  };
+
   return (
     <Card
       css={styles.root()}
@@ -223,6 +248,7 @@ const PairForm: FC<Props> = ({
                 disabled={disabled}
                 handleAutocompleteChange={handleTheFirstItemAutocompleteChange}
                 onValueChange={makeHandleValueChange('theFirst')}
+                onBlur={makeHandleValueBlur('theFirst')}
                 handleMaxClick={handleTheFirstItemMaxClick}
               />
               <Box css={styles.arrow()}>{actionIcon}</Box>
@@ -249,6 +275,7 @@ const PairForm: FC<Props> = ({
                 disabled={disabled}
                 handleAutocompleteChange={handleTheSecondItemAutocompleteChange}
                 onValueChange={makeHandleValueChange('theSecond')}
+                onBlur={makeHandleValueBlur('theSecond')}
                 handleMaxClick={handleTheSecondItemMaxClick}
               />
               {hint}

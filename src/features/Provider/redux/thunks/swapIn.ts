@@ -4,6 +4,7 @@ import { ethers } from 'ethers';
 import { fetchReadFromRegistry } from 'src/shared/api/blockchain/rinkeby/fetches/readFromRegistry';
 import { fetchWriteToERC20 } from 'src/shared/api/blockchain/rinkeby/fetches/writeToERC20';
 import { fetchWriteToRouter } from 'src/shared/api/blockchain/rinkeby/fetches/writeToRouter';
+import { contracts } from 'src/shared/api/blockchain/rinkeby/constants';
 import { isError } from 'src/shared/types/guards';
 
 type Options = {
@@ -43,7 +44,7 @@ const swapIn = createAsyncThunk(
     const txTokenIn = await fetchWriteToERC20({
       contractParameters: { address: tokenInAddress, signer },
       methods: {
-        approve: [pairAddress, tokenInValue],
+        approve: [contracts.router.address, tokenInValue],
       },
     });
 

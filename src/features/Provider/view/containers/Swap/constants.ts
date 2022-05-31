@@ -8,7 +8,7 @@ const initialState = {
     decimals: 0,
   },
   tokensMax: ['0', '0'],
-  proportion: { value: '', decimals: 0 },
+  proportion: { pairAddress: '', value: '', decimals: 0 },
   slippage: 10,
 };
 

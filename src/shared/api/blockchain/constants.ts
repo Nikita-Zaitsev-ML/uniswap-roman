@@ -78,4 +78,41 @@ const ERC20ABI = [
   'function transferFrom(address from, address to, uint256 amount) returns (bool)',
 ];
 
-export { factoryABI, routerABI, registryABI, feeABI, ERC20ABI };
+const ERC20PairABI = [
+  'constructor(address _token0, address _token1, address _router, address _fee)',
+  'event Approval(address indexed owner, address indexed spender, uint256 value)',
+  'event Burn(address indexed sender, uint256 amountLP)',
+  'event Mint(address indexed sender, uint256 amount0, uint256 amount1)',
+  'event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)',
+  'event SetFee(address fee)',
+  'event SetRouter(address router)',
+  'event Transfer(address indexed from, address indexed to, uint256 value)',
+  'event UpdateReserves(uint256 reserve0, uint256 reserve1)',
+  'function addLiquidity(address recipient, uint256 amount0, uint256 amount1)',
+  'function allowance(address owner, address spender) view returns (uint256)',
+  'function approve(address spender, uint256 amount) returns (bool)',
+  'function balanceOf(address account) view returns (uint256)',
+  'function calculateAmoutIn(address tokenIn, address tokenOut, uint256 amountOut) view returns (uint256 amountIn, uint256 tokenInFee)',
+  'function calculateAmoutOut(address tokenIn, address tokenOut, uint256 amountIn) view returns (uint256 amountOut, uint256 tokenOutFee)',
+  'function decimals() view returns (uint8)',
+  'function decreaseAllowance(address spender, uint256 subtractedValue) returns (bool)',
+  'function fee() view returns (address)',
+  'function getReserve(uint256 index) view returns (uint256)',
+  'function increaseAllowance(address spender, uint256 addedValue) returns (bool)',
+  'function name() view returns (string)',
+  'function owner() view returns (address)',
+  'function removeLiquidity(uint256 _amountLP, address recipient)',
+  'function renounceOwnership()',
+  'function reserves(uint256) view returns (uint256)',
+  'function router() view returns (address)',
+  'function setFee(address _fee)',
+  'function setRouter(address _router)',
+  'function swap(address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut, address tokenFee, uint256 totalFee, address recipient)',
+  'function symbol() view returns (string)',
+  'function totalSupply() view returns (uint256)',
+  'function transfer(address to, uint256 amount) returns (bool)',
+  'function transferFrom(address from, address to, uint256 amount) returns (bool)',
+  'function transferOwnership(address newOwner)',
+];
+
+export { factoryABI, routerABI, registryABI, feeABI, ERC20ABI, ERC20PairABI };
