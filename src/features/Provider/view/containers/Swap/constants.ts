@@ -1,11 +1,14 @@
 const initialState = {
-  tokenValues: {
+  optionValues: [null, null],
+  tokenValue: {
     address: '',
     name: '',
+    symbol: '',
     value: '',
-    userBalance: '',
-    pairBalance: '',
+    userBalance: '0',
+    pairBalance: '0',
     decimals: 0,
+    image: '',
   },
   tokensMax: ['0', '0'],
   proportion: { pairAddress: '', value: '', decimals: 0 },

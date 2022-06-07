@@ -22,30 +22,18 @@ const createStyles = (props: Pick<Props, 'header'>, theme: Theme) => ({
     `;
   },
   header: () => {
-    const mobileHeight = 123;
-
     return css`
       grid-area: header;
-      margin-top: max(${mobileHeight}px, ${theme.spacing(150)});
+      margin-top: ${theme.spacing(74)};
     `;
   },
   content: () => {
-    const grid = css`
-      grid: auto / auto;
-    `;
-
     return css`
       grid-area: content;
-      display: grid;
+      padding-top: 1em;
       padding-bottom: 1em;
-
-      ${grid}
     `;
   },
-  heading: () => css`
-    grid-area: heading;
-  `,
-  main: () => css``,
 });
 
 export { createStyles };

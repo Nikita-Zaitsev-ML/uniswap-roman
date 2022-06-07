@@ -3,13 +3,21 @@ import { useTheme } from '@mui/material';
 import { ethers } from 'ethers';
 
 import { useAppDispatch, useAppSelector } from 'src/app/hooks';
-import { Card, Box, Typography, Button } from 'src/shared/components';
+import {
+  Card,
+  Box,
+  Typography,
+  Button,
+  WifiProtectedSetup,
+} from 'src/shared/components';
 import { Address } from 'src/shared/api/blockchain/types';
-import { BigNumber } from 'src/shared/helpers/blockchain/numbers';
+import { BigNumber, parseUnits } from 'src/shared/helpers/blockchain/numbers';
 
 import { Pair } from '../../../types';
 import { selectProvider, removeLiquidity } from '../../../redux/slice';
+import { isDisabled } from '../../../utils';
 import { createStyles } from './ViewPairs.style';
+import { MaskedDecimalField } from '../../components/MaskedDecimalField/MaskedDecimalField';
 
 type Props = {
   userAddress: Address;
@@ -22,21 +30,43 @@ const ViewPairs: FC<Props> = ({ signer, switchBtn }) => {
   const theme = useTheme();
   const styles = createStyles(theme);
 
-  const [isDisabled, setIsDisabled] = useState(false);
+  const [withdraw, setWithdraw] = useState<{ [pairAddress: string]: string }>(
+    {}
+  );
 
   const {
     data: { pairs },
+    status,
+    shouldUpdateData,
   } = useAppSelector(selectProvider);
   const pairsOfUser = pairs.filter((pair) =>
-    new BigNumber(pair.userBalance).gt('0')
+    new BigNumber(pair.userBalance).decimalPlaces(5).gt('0')
   );
   const dispatch = useAppDispatch();
 
+  const makeHandleDecimalFieldChange =
+    (
+      pairAddress: string
+    ): Parameters<typeof MaskedDecimalField>['0']['onValueChange'] =>
+    ({ value }) => {
+      setWithdraw({ ...withdraw, [pairAddress]: value });
+    };
+
   const makeHandleDeleteBtnClick = (pair: Pair) => () => {
     if (signer !== null) {
-      setIsDisabled(true);
+      const { tokens } = pair;
+      const [token0, token1] = tokens;
 
-      dispatch(removeLiquidity({ pair, signer }));
+      dispatch(
+        removeLiquidity({
+          token0: token0.address,
+          token1: token1.address,
+          amountLP: parseUnits(withdraw[pair.address], pair.decimals),
+          signer,
+        })
+      );
+
+      setWithdraw({ ...withdraw, [pair.address]: '' });
     }
   };
 
@@ -51,7 +81,12 @@ const ViewPairs: FC<Props> = ({ signer, switchBtn }) => {
                 Мои пары
               </Typography>
               {switchBtn !== undefined && (
-                <Button size="small" onClick={switchBtn.onClick}>
+                <Button
+                  size="small"
+                  endIcon={<WifiProtectedSetup />}
+                  disabled={isDisabled(status, shouldUpdateData)}
+                  onClick={switchBtn.onClick}
+                >
                   Добавить пару
                 </Button>
               )}
@@ -75,16 +110,30 @@ const ViewPairs: FC<Props> = ({ signer, switchBtn }) => {
                       {`${pair.tokens.map(({ name }) => name).join(' + ')}:`}
                     </Typography>
                     <Typography css={styles.pairBalance()} variant="body2">
-                      {new BigNumber(pair.userBalance).toFixed(pair.decimals)}
+                      {new BigNumber(pair.userBalance)
+                        .decimalPlaces(5)
+                        .toString()}
                     </Typography>
+                    <MaskedDecimalField
+                      css={styles.pairDecimalField()}
+                      value={withdraw[pair.address]}
+                      max={new BigNumber(pair.userBalance)
+                        .decimalPlaces(5)
+                        .toString()}
+                      disabled={isDisabled(status, shouldUpdateData)}
+                      onValueChange={makeHandleDecimalFieldChange(pair.address)}
+                    />
                     <Button
                       css={styles.pairDeleteBtn()}
                       size="small"
                       color="error"
+                      disabled={
+                        !new BigNumber(withdraw[pair.address]).gt('0') ||
+                        isDisabled(status, shouldUpdateData)
+                      }
                       onClick={makeHandleDeleteBtnClick(pair)}
-                      disabled={isDisabled}
                     >
-                      Удалить пару
+                      Вывести
                     </Button>
                   </Box>
                 ))
